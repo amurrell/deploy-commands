@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+while getopts ":h" option; do
+    case $option in
+      h) echo "Use -v for release version aka folder name"; exit ;;
+    esac
+done
+
+V=$(sed -e 's#.*\-v=\(.*\).*#\1#' <<< "$1")
+
+if [ "$V" == "$1" ]; then
+    printf "You must specify which version folder to deploy - eg. -v=1.0.1\n"
+    exit 1
+else
+    VERSION=$V
+fi
+
+printf "Going to deploy $V\n"
+
+# Get one level up, out of commands
+cd ../
+
+# Update the symbolic link current
+BASEPATH=$(pwd)
+NEWPATH="$BASEPATH/$VERSION"
+printf "${NEWPATH}\n"
+
+ln -sfn $NEWPATH current
+
+# Go back into commands
+cd commands
+
+# restart
+./nuxt-reload
+

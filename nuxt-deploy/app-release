@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# Add default repo and uncomment to avoid having to add it all the time.
+# DEFAULT_REPO=''
+
+while getopts ":h" option; do
+    case $option in
+      h) echo "Use -r to specify a repo, eg -r=git@xxx"; exit ;;
+    esac
+done
+
+R=$(sed -e 's#.*\-r=\(.*\).*#\1#' <<< "$1$2")
+
+if [ "$R" == "$1" ] && [ "$DEFAULT_REPO" == "" ]; then
+    printf "You must specify which repo to use. eg -r=git@github.com:you/yourrepo.git\n"
+    exit 1
+else
+    REPO=$R
+fi
+
+
+# Resume
+R=$(sed -e 's#.*\-r=\(.*\).*#\1#' <<< "$1$2")
+
+if [ "$R" == "$1$2" ]; then
+    REPO=${DEFAULT_REPO}
+else
+    REPO=$R
+fi
+
+printf "${REPO}\n"
+
+# Get one leve up, out of commands
+cd ../
+
+# PROMPT Release Name
+read -p "Release Name - eg 1.0.1: " RELEASE
+
+CMD="git clone $REPO $RELEASE"
+
+eval $CMD
+
+read -p "Is this release a tag? " -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    git checkout $RELEASE
+fi
+
+read -p "Do you need a branch change? " -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    read -p "Remote/Branch name eg. origin/v2: " BRANCH
+    git checkout $BRANCH
+fi
+
+# Go into the repo
+cd $RELEASE
+cd app
+
+# npm things
+npm install
+npm run build
+
+# go back to root of repo
+cd ../
+# go back to root of releases
+cd ../
+
+# Go back into commands
+cd commands
+
+

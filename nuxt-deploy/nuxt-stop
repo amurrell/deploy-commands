@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+while getopts ":h" option; do
+    case $option in
+      h) echo "Use -v for release version aka folder name"; exit ;;
+    esac
+done
+
+S=$(sed -e 's#.*\-v=\(.*\).*#\1#' <<< "$1")
+
+if [ "$S" == "$1" ]; then
+    printf "You must specify which nuxt server to use - eg. -s=someserver\n"
+    exit 1
+else
+    SERVER=$S
+fi
+
+CMD="pm2 stop $server"
+
+eval $cmd
+

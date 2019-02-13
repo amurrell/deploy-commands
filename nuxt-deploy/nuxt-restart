@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+while getopts ":h" option; do
+    case $option in
+      h) echo "Use -s for server name for the process. use -n for path to node modules."; exit ;;
+    esac
+done
+
+S=$(sed -e 's#.*\-s=\(.*\).*#\1#' <<< "$1$2")
+N=$(sed -e 's#.*\-n=\(.*\).*#\1#' <<< "$1$2")
+
+if [ "$S" == "$1" ]; then
+    printf "You must specify which nuxt server to use - eg. -s=someserver\n"
+    exit 1
+else
+    SERVER=$S
+fi
+
+if [ "$N" == "$1" ]; then
+    printf "You must specify the path to the folder where node-modules live - eg. -n=someserver\n"
+    exit 1
+else
+    PATH_TO_NODE_FOLDER=$N
+fi
+
+CMD="cd $PATH_TO_NODE_FOLDER"
+eval $CMD
+
+CMD="pm2 restart ./node_modules/nuxt/bin/nuxt-start --name $server"
+
+eval $cmd
+
