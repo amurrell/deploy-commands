@@ -13,6 +13,8 @@ Setup your structure like this
 ---- pm2 ecosystem file
 ```
 
+Where `nuxt` is just a folder to store your site releases, essentially. Not your repo!
+
 Make a symbolic link to the nuxt-deploy folder:
 
 `ln -s deploy-commands/nuxt-deploy nuxt/commands`
@@ -77,3 +79,20 @@ This will:
 
 - create a symbolic link named `current` that points to `dev`
 - run the necessary `pm2 reload` on the server you specify
+
+Now your structure is like this:
+
+```
+- deploy-commands
+- nuxt
+---- pm2 ecosystem file
+---- commands
+---- dev
+---- current
+```
+
+Where current is a symbolic link to the latest release.
+
+You can now continue to build more releases with `./app-release` based on tags perhaps, or different branches.
+
+Then you can use `./app-deploy` to change which release is live - which is helpful for rolling back as well.
