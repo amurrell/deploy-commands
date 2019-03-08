@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
 
-while getopts ":h" option; do
-    case $option in
-      h) echo "Use -s for server name for the process"; exit ;;
-    esac
-done
+# Put server name in a relative file appservername
+if [ -f appservername ]; then
+    SERVER=$(<appservername)
+fi
 
-S=$(sed -e 's#.*\-v=\(.*\).*#\1#' <<< "$1")
+H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
+S=$(sed -e 's#.*\-s=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 
-if [ "$S" == "$1" ]; then
+if [ "$H" == "-h" ]; then
+    printf "Use -s to specify name of server in pm2, eg. -s=myapp-server\n"
+    exit 1;
+fi
+
+# Check that either -s or server (appservername) are set
+if [ "$S" == "$*" ] && [ "$SERVER" == "" ]; then
     printf "You must specify which nuxt server to use - eg. -s=someserver\n"
     exit 1
 else
-    SERVER=$S
+    # Set server, whether using the appservername or -s
+    if [ "$S" == "$*" ]; then
+        SERVER=${SERVER}
+    else
+        SERVER=$S
+    fi
 fi
 
 CMD="pm2 info $server"

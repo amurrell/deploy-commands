@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
+V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
+
+if [ "$H" == "-h" ]; then
+    printf "Use -v to specify release (eg. tag name)\n"
+    exit 1;
+fi
+
+if [ "$V" == "$*" ]; then
+    printf "You must specify which version folder to deploy - eg. -v=1.0.1\n"
+    exit 1
+else
+    VERSION=$V
+fi
+
+printf "Going to deploy $V\n"
+
+# Get one level up, out of commands
+cd ../
+
+# Update the symbolic link current
+BASEPATH=$(pwd)
+NEWPATH="$BASEPATH/$VERSION"
+printf "${NEWPATH}\n"
+
+ln -sfn $NEWPATH current
+
+# Go back into commands
+cd commands

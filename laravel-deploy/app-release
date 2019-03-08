@@ -1,8 +1,37 @@
 #!/usr/bin/env bash
 
+# Copy this folder as "commands" and save in same directory as "current" release symlink.
+# Put all these config files directly into the commands folder.
+
+RELEASING_FROM=$(pwd)
+
 # Put default repo in a relative file apprepo
 if [ -f apprepo ]; then
     DEFAULT_REPO=$(<apprepo)
+fi
+
+# Put laravel folder in a relative (to commands) file laravelfolder
+# Laravel folder needs to be in the release (repo)
+# Useful if the repo contains higher level folders and the laravel app is not at the root
+if [ -f laravelfolder ]; then
+    LARAVELFOLDER_LOCATION=$(<laravelfolder)
+else
+    LARAVELFOLDER_LOCATION=''
+fi
+
+# Put laravel logs folder in a relative file laravellogsfolder
+# Logs folder needs to be within the release (repo)
+if [ -f laravellogsfolder ]; then
+    LARAVELLOGSFOLDER_LOCATION=$(<laravellogsfolder)
+else
+    LARAVELLOGSFOLDER_LOCATION='logs'
+fi
+
+# Put the .env file you want to copy into the releases into a relative file laravelenvfile
+if [ -f laravelenvfile ]; then
+    LARAVEL_ENVFILE=$(<laravelenvfile)
+else
+    LARAVEL_ENVFILE=''
 fi
 
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -78,17 +107,28 @@ elif [ "$B" != "false" ]; then
     git checkout -b "$B" "origin/$B"
 fi
 
-# Go into the repo's app folder, where npm is?
-cd app
+# Go into the laravel app folder
+cd "$LARAVELFOLDER_LOCATION"
+CURRENT=$(pwd)
 
-# npm things
-npm install
-npm run build
+## Laravel specific setup - composer install
+cd "$CURRENT"
+composer install
 
-# go back to root of repo
-cd ../
-# go back to root of releases
-cd ../
+## Laravel specific setup - file permissions
+chmod 777 "$CURRENT/app/storage" -R
+chmod 777 "$CURRENT/app/bootstrap" -R
 
-# Go back into commands
-cd commands
+## Laravel specific setup - copy env
+if [ ! "$LARAVEL_ENVFILE" == "" ]; then
+    cp "$RELEASING_FROM/$LARAVEL_ENVFILE" "$CURRENT/app/.env"
+else
+    cp "$CURRENT/app/.env-example" "$CURRENT/app/.env"
+    printf "Warning: You still need to setup the .env file for this release. Example copied for now.\n"
+fi
+
+## Make Logs Directory
+mkdir -p "$CURRENT/$LARAVELLOGSFOLDER_LOCATION"
+
+## Change ownership of the logs folder
+chown www-data:www-data "$CURRENT/$LARAVELLOGSFOLDER_LOCATION"
