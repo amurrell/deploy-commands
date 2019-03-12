@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 
+RELEASING_FROM=$(pwd)
+
 # Put default repo in a relative file apprepo
 if [ -f apprepo ]; then
     DEFAULT_REPO=$(<apprepo)
+fi
+
+# Put the .env file you want to copy into the releases into a relative file nuxtenvfile
+if [ -f nuxtenvfile ]; then
+    NUXT_ENVFILE=$(<nuxtenvfile)
+else
+    NUXT_ENVFILE=''
 fi
 
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -80,6 +89,14 @@ fi
 
 # Go into the repo's app folder, where npm is?
 cd app
+CURRENT=$(pwd)
+
+# add a dot env file if we have one
+if [ ! "$NUXT_ENVFILE" == "" ]; then
+    cp "$RELEASING_FROM/$NUXT_ENVFILE" "$CURRENT/app/.env"
+else
+    printf "Warning: You still need to setup the .env file for this release.\n"
+fi
 
 # npm things
 npm install
