@@ -27,6 +27,10 @@ BASEPATH=$(pwd)
 NEWPATH="$BASEPATH/$VERSION"
 printf "${NEWPATH}\n"
 
+# Go back to commands, then one level up, where current symlink is
+cd $DEPLOYING_FROM
+cd ../
+
 ln -sfn $NEWPATH current
 
 # Go back into commands
