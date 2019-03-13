@@ -124,3 +124,14 @@ From that folder, run your `pm2 start`
 | laravelenvfile | {typical laravel .env file} | Optional - will get copied into your release |
 | laravellogsfolder | `logs`, `DockerLocal/logs` | Optional - makes a directory `logs` by default, but nothing else happens - useful to create this directory for pointing php/nginx log files to
 
+Laravel deployments uses **a releases folder** such that the directory structure looks like this:
+
+```
+- yoursite.com
+----- deploy-commands
+----- commands           # symbolic link to deploy-commands/laravel-deploy
+----- releases
+---------- 1.0.0         # release on tag
+---------- 1.0.1         # release on tag
+---------- dev           # release on branch
+```
