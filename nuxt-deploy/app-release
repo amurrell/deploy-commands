@@ -93,7 +93,7 @@ CURRENT=$(pwd)
 
 # add a dot env file if we have one
 if [ ! "$NUXT_ENVFILE" == "" ]; then
-    cp "$RELEASING_FROM/$NUXT_ENVFILE" "$CURRENT/app/.env"
+    echo "$NUXT_ENVFILE" >> "$CURRENT/app/.env"
 else
     printf "Warning: You still need to setup the .env file for this release.\n"
 fi
