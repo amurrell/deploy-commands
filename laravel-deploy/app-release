@@ -34,6 +34,9 @@ else
     LARAVEL_ENVFILE=''
 fi
 
+printf "$LARAVELFOLDER_LOCATION"
+printf "$LARAVELLOGSFOLDER_LOCATION"
+
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -110,6 +113,8 @@ fi
 # Go into the laravel app folder
 cd "$LARAVELFOLDER_LOCATION"
 CURRENT=$(pwd)
+
+printf "$CURRENT"
 
 ## Laravel specific setup - composer install
 cd "$CURRENT"
