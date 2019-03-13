@@ -116,14 +116,14 @@ cd "$CURRENT"
 composer install
 
 ## Laravel specific setup - file permissions
-chmod 777 "$CURRENT/app/storage" -R
-chmod 777 "$CURRENT/app/bootstrap" -R
+chmod 777 "$CURRENT/storage" -R
+chmod 777 "$CURRENT/bootstrap" -R
 
 ## Laravel specific setup - copy env
 if [ ! "$LARAVEL_ENVFILE" == "" ]; then
-    echo "$LARAVEL_ENVFILE" >> "$CURRENT/app/.env"
+    echo "$LARAVEL_ENVFILE" >> "$CURRENT/.env"
 else
-    cp "$CURRENT/app/.env-example" "$CURRENT/app/.env"
+    cp "$CURRENT/.env-example" "$CURRENT/.env"
     printf "Warning: You still need to setup the .env file for this release. Example copied for now.\n"
 fi
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+DEPLOYING_FROM=$(pwd)
+
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 
@@ -18,7 +20,7 @@ fi
 printf "Going to deploy $V\n"
 
 # Get one level up, out of commands
-cd ../
+cd ../releases
 
 # Update the symbolic link current
 BASEPATH=$(pwd)
@@ -28,4 +30,4 @@ printf "${NEWPATH}\n"
 ln -sfn $NEWPATH current
 
 # Go back into commands
-cd commands
+cd $DEPLOYING_FROM
