@@ -26,7 +26,7 @@ else
     fi
 fi
 
-CMD="pm2 reload $server"
+CMD="pm2 reload $SERVER"
 
 eval $cmd
 

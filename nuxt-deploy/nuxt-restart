@@ -38,7 +38,7 @@ fi
 CMD="cd $PATH_TO_NODE_FOLDER"
 eval $CMD
 
-CMD="pm2 restart ./node_modules/nuxt/bin/nuxt-start --name $server"
+CMD="pm2 restart ./node_modules/nuxt/bin/nuxt-start --name $SERVER"
 
 eval $cmd
 

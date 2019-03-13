@@ -26,7 +26,7 @@ else
     fi
 fi
 
-CMD="pm2 delete $server"
+CMD="pm2 delete $SERVER"
 
 eval $cmd
 

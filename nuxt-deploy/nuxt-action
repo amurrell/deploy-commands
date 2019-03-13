@@ -42,10 +42,10 @@ if [ "$ACTION" == 'start' ] || [ "$ACTION" == 'restart' ]; then
     CMD="cd $PATH_TO_NODE_FOLDER"
     eval $CMD
 
-    CMD="pm2 $ACTION ./node_modules/nuxt/bin/nuxt-start --name $server"
+    CMD="pm2 $ACTION ./node_modules/nuxt/bin/nuxt-start --name $SERVER"
 
 else
-    CMD="pm2 $action $server"
+    CMD="pm2 $ACTION $SERVER"
 fi
 
 eval $CMD
