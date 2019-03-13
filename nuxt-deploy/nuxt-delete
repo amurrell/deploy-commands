@@ -28,5 +28,5 @@ fi
 
 CMD="pm2 delete $SERVER"
 
-eval $cmd
+eval $CMD
 

@@ -28,5 +28,5 @@ fi
 
 CMD="pm2 reload $SERVER"
 
-eval $cmd
+eval $CMD
 

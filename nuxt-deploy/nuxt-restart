@@ -40,5 +40,5 @@ eval $CMD
 
 CMD="pm2 restart ./node_modules/nuxt/bin/nuxt-start --name $SERVER"
 
-eval $cmd
+eval $CMD
 
