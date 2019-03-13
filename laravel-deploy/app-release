@@ -62,7 +62,7 @@ else
 fi
 
 # Get one leve up, out of commands
-cd ../
+cd ../releases
 
 # PROMPT Release Name
 if [ "$V" == "$*" ]; then
@@ -121,7 +121,7 @@ chmod 777 "$CURRENT/app/bootstrap" -R
 
 ## Laravel specific setup - copy env
 if [ ! "$LARAVEL_ENVFILE" == "" ]; then
-    cp "$RELEASING_FROM/$LARAVEL_ENVFILE" "$CURRENT/app/.env"
+    echo "$LARAVEL_ENVFILE" >> "$CURRENT/app/.env"
 else
     cp "$CURRENT/app/.env-example" "$CURRENT/app/.env"
     printf "Warning: You still need to setup the .env file for this release. Example copied for now.\n"
@@ -132,3 +132,6 @@ mkdir -p "$CURRENT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
 chown www-data:www-data "$CURRENT/$LARAVELLOGSFOLDER_LOCATION"
+
+## Change back to the commands directory
+cd $RELEASE_FROM
