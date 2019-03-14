@@ -64,7 +64,7 @@ else
     fi
 fi
 
-# Get one leve up, out of commands
+# Get one level up, out of commands
 cd ../releases
 
 # PROMPT Release Name
@@ -111,6 +111,7 @@ elif [ "$B" != "false" ]; then
 fi
 
 # Go into the laravel app folder
+REPO_ROOT=$(pwd)
 cd "$LARAVELFOLDER_LOCATION"
 CURRENT=$(pwd)
 
@@ -126,17 +127,17 @@ chmod 777 "$CURRENT/bootstrap" -R
 
 ## Laravel specific setup - copy env
 if [ ! "$LARAVEL_ENVFILE" == "" ]; then
-    echo "$LARAVEL_ENVFILE" >> "$CURRENT/.env"
+    echo "$LARAVEL_ENVFILE" >> ".env"
 else
-    cp "$CURRENT/.env-example" "$CURRENT/.env"
+    cp "$CURRENT/.env-example" ".env"
     printf "Warning: You still need to setup the .env file for this release. Example copied for now.\n"
 fi
 
 ## Make Logs Directory
-mkdir -p "$CURRENT/$LARAVELLOGSFOLDER_LOCATION"
+mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
-chown www-data:www-data "$CURRENT/$LARAVELLOGSFOLDER_LOCATION"
+chown www-data:www-data "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change back to the commands directory
 cd $RELEASE_FROM
