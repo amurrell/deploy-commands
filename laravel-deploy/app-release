@@ -80,6 +80,7 @@ CMD="git clone $REPO $RELEASE"
 eval $CMD
 # Go into the repo
 cd $RELEASE
+REPO_ROOT=$(pwd)
 
 # PROMPT If Tag
 if [ "$T" == "$*" ]; then
@@ -87,9 +88,11 @@ if [ "$T" == "$*" ]; then
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
+        git fetch --tags
         git checkout $RELEASE
     fi
 elif [ "$T" == "true" ]; then
+    git fetch --tags
     git checkout $RELEASE
 fi
 
@@ -111,7 +114,6 @@ elif [ "$B" != "false" ]; then
 fi
 
 # Go into the laravel app folder
-REPO_ROOT=$(pwd)
 cd "$LARAVELFOLDER_LOCATION"
 CURRENT=$(pwd)
 

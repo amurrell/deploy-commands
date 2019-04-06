@@ -71,14 +71,14 @@ Place your config files into the commands folder directly, like this:
 ### Generic Deply-Commands Config
 
 | File | Example Contents | Description |
-|----|----|-----|------|
+|----|----|-----|
 | apprepo | `git@github.com:you/yourrepo.git` | Optional - used to avoid being prompted every time |
 
 
 ### Nuxt Deply-Commands Config
 
 | File | Example Contents | Description |
-|----|----|-----|------|
+|----|----|-----|
 | appservername | `my-app-server` | Optional - the name of the server used in pm2, only needed to avoid being prompted everytime |
 | nuxtenvfile | `BASE_API_URL=https://someurl` | Optional - If you need to use a dotenv file with deploys on this server |
 
@@ -119,7 +119,7 @@ From that folder, run your `pm2 start`
 ### Laravel Deply-Commands Config
 
 | File | Example Contents | Description |
-|----|----|-----|------|
+|----|----|-----|
 | laravelfolder | `laravel-app` | Optional - only needed if laravel is in a subfolder of your repo eg. `yourrepo/laravel-app` |
 | laravelenvfile | {typical laravel .env file} | Optional - will get copied into your release |
 | laravellogsfolder | `logs`, `DockerLocal/logs` | Optional - makes a directory `logs` by default, but nothing else happens - useful to create this directory for pointing php/nginx log files to
