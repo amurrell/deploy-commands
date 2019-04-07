@@ -64,9 +64,11 @@ if [ "$T" == "$*" ]; then
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
+        git fetch --tags
         git checkout $RELEASE
     fi
 elif [ "$T" == "true" ]; then
+    git fetch --tags
     git checkout $RELEASE
 fi
 
