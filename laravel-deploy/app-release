@@ -124,8 +124,12 @@ cd "$CURRENT"
 composer install
 
 ## Laravel specific setup - file permissions
+touch "$CURRENT/storage/logs/laravel.log"
 chmod 777 "$CURRENT/storage" -R
 chmod 777 "$CURRENT/bootstrap" -R
+
+## Chown files
+chown www-data:www-data "$CURRENT" -R
 
 ## Laravel specific setup - copy env
 if [ ! "$LARAVEL_ENVFILE" == "" ]; then
@@ -142,4 +146,4 @@ mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 chown www-data:www-data "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change back to the commands directory
-cd $RELEASE_FROM
+cd $RELEASING_FROM
