@@ -118,9 +118,17 @@ cd "$LARAVELFOLDER_LOCATION"
 CURRENT=$(pwd)
 
 printf "$CURRENT"
+cd "$CURRENT"
+
+## Laravel specific setup - copy env
+if [ ! "$LARAVEL_ENVFILE" == "" ]; then
+    echo "$LARAVEL_ENVFILE" >> ".env"
+else
+    cp "$CURRENT/.env-example" ".env"
+    printf "Warning: You still need to setup the .env file for this release. Example copied for now.\n"
+fi
 
 ## Laravel specific setup - composer install
-cd "$CURRENT"
 composer install
 
 ## Laravel specific setup - file permissions
@@ -130,14 +138,6 @@ chmod 777 "$CURRENT/bootstrap" -R
 
 ## Chown files
 chown www-data:www-data "$CURRENT" -R
-
-## Laravel specific setup - copy env
-if [ ! "$LARAVEL_ENVFILE" == "" ]; then
-    echo "$LARAVEL_ENVFILE" >> ".env"
-else
-    cp "$CURRENT/.env-example" ".env"
-    printf "Warning: You still need to setup the .env file for this release. Example copied for now.\n"
-fi
 
 ## Make Logs Directory
 mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
