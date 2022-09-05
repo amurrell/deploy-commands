@@ -46,26 +46,33 @@ ln -sfn $NEWPATH current
 # Go back into commands
 cd $DEPLOYING_FROM
 
-# Run test command to see if we should run reload command
+# Test CMD - then if reload command exists, run it if 0 (good) exit code.
 if [ "$TEST_CMD" != '' ]; then
-    printf "Detected test command, so going to test.\n"
-    eval $TEST_CMD
-fi
-
-# Could study the output and look for "syntax is ok" and "test is successful"
-# and then restart those services
-# nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
-# nginx: configuration file /etc/nginx/nginx.conf test is successful
-# [09-Apr-2019 01:07:24] NOTICE: configuration file /etc/php/7.3/fpm/php-fpm.conf test is successful
-
-if [ "$RELOAD_CMD" != '' ]; then
-    printf "Detected reload command.. going to prompt if you think you should reload based on tests:\n"
+    printf "==== ⏳ Detected TEST Command, so running TEST command...\n"
     
-    read -p "Was the test good - do you want to run reload? " -n 1 -r
-    echo    # (optional) move to a new line
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-        eval $RELOAD_CMD
+    eval $TEST_CMD
+
+    status=$?
+
+    if [ $status -eq 0 ]; then
+        printf "==== ✅ Test Command: SUCCESS\n"
+
+        # If reload command exists, run it
+        if [ "$RELOAD_CMD" != '' ]; then
+            printf "==== ⏳ Detected RELOAD Command, so running RELOAD command...\n"
+            eval $RELOAD_CMD
+            status=$?
+
+            if [ $status -eq 0 ]; then
+                printf "==== ✅ Reload Command: SUCCESS\n"
+            else
+                printf "==== ❌ Reload Command: FAILED\n"
+            fi
+        fi
+        
+    else
+        printf "==== ❌ Test Command: FAIL\n"
+        exit 1
     fi
     
 fi

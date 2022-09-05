@@ -4,16 +4,12 @@
 
 Clone the repo, create symbolic link to commands folder you need.
 
-Example: **Be sure to change** `{FRAMEWORK}` to match either `nuxt` or `laravel`
+Example: **Be sure to change** `{TYPE}` to match either `pm2` or `laravel`
 
 ```
 cd /var/www/yoursite.com
 git clone git@github.com:amurrell/deploy-commands.git
-ln -s deploy-commands/{FRAMEWORK}-deploy ./commands
-```
-
-```
-
+ln -s deploy-commands/{TYPE}-deploy ./commands
 ```
 
 ---
@@ -24,16 +20,6 @@ The main actions are `releasing` and `deploying`.
 
 - `Releasing` simply clones and/or checkout a branch/tag and runs build processing (eg. npm install, composer install)
 - `Deploying` simply takes a folder name (release) to change out the current directory and/or reloads services
-
-Additionally, the `nuxt-deploy` set includes a bunch of helpful `nuxt` aliases for the following actions:
-
-  - start
-  - reload
-  - restart
-  - logs
-  - info
-  - delete
-  - stop
 
 **Building a Release - Prompted Vs. Unprompted**
 
@@ -75,12 +61,12 @@ Place your config files into the commands folder directly, like this:
 | apprepo | `git@github.com:you/yourrepo.git` | Optional - used to avoid being prompted every time |
 
 
-### Nuxt Deply-Commands Config
+### PM2 Deply-Commands Config
 
 | File | Example Contents | Description |
 |----|----|-----|
 | appservername | `my-app-server` | Optional - the name of the server used in pm2, only needed to avoid being prompted everytime |
-| nuxtenvfile | `BASE_API_URL=https://someurl` | Optional - If you need to use a dotenv file with deploys on this server |
+| appenvfile | `BASE_API_URL=https://someurl` | Optional - If you need to use a dotenv file with deploys on this server |
 
 The **appservername** should correlate to your ecosystem file, if you are using one with pm2. 
 
@@ -105,14 +91,14 @@ Where your directory structure might look like:
 ```
 - yoursite.com
 ----- deploy-commands
------ commands      # symbolic link to deploy-commands/nuxt-deploy
+----- commands      # symbolic link to deploy-commands/pm2-deploy
 ----- 1.0.0         # release on tag
 ----- 1.0.1         # release on tag
 ----- dev           # release on branch
 ----- ecosystem.config.js
 ```
 
-Ensure that the "NAME OF YOUR SERVER" matches the appservername config or the `-s` switch in the release/deploy/nuxt commands
+Ensure that the "NAME OF YOUR SERVER" matches the appservername config or the `-s` switch in the release/deploy/pm2-deploy/commands
 
 From that folder, run your `pm2 start`
 

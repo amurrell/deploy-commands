@@ -7,11 +7,11 @@ if [ -f apprepo ]; then
     DEFAULT_REPO=$(<apprepo)
 fi
 
-# Put the .env file you want to copy into the releases into a relative file nuxtenvfile
-if [ -f nuxtenvfile ]; then
-    NUXT_ENVFILE=$(<nuxtenvfile)
+# Put the .env file you want to copy into the releases into a relative file appenvfile
+if [ -f appenvfile ]; then
+    APP_ENVFILE=$(<appenvfile)
 else
-    NUXT_ENVFILE=''
+    APP_ENVFILE=''
 fi
 
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -94,8 +94,8 @@ cd app
 CURRENT=$(pwd)
 
 # add a dot env file if we have one
-if [ ! "$NUXT_ENVFILE" == "" ]; then
-    echo "$NUXT_ENVFILE" >> "$CURRENT/.env"
+if [ ! "$APP_ENVFILE" == "" ]; then
+    echo "$APP_ENVFILE" >> "$CURRENT/.env"
 else
     printf "Warning: You still need to setup the .env file for this release.\n"
 fi
