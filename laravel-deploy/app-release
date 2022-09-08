@@ -163,10 +163,7 @@ mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 ## Change ownership of the logs folder
 # putting owner_group twice here for a www-data:www-data setup 
 # despite owner_user being set as something potentially different eg. ubuntu
-chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
-
-## Laravel specific setup - file permissions
-printf "============ Adjust Laravel File Permissions\n"
+sudo chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
