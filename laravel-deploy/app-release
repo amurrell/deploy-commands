@@ -34,6 +34,20 @@ else
     LARAVEL_ENVFILE=''
 fi
 
+# Put the directory owner user into owner_user to change it from www-data
+if [ -f owner_user ]; then
+    OWNER_USER=$(<owner_group)
+else
+    OWNER_USER='www-data'
+fi
+
+# Put the directory owner group into owner_group to change it from www-data
+if [ -f owner_group ]; then
+    OWNER_GROUP=$(<owner_group)
+else
+    OWNER_GROUP='www-data'
+fi
+
 printf "$LARAVELFOLDER_LOCATION"
 printf "$LARAVELLOGSFOLDER_LOCATION"
 
@@ -133,17 +147,26 @@ composer install
 
 ## Laravel specific setup - file permissions
 touch "$CURRENT/storage/logs/laravel.log"
-chmod 777 "$CURRENT/storage" -R
-chmod 777 "$CURRENT/bootstrap" -R
 
-## Chown files
-chown www-data:www-data "$CURRENT" -R
+# Assumes your user is allowed to sudo w/out password entered
+sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT"
+sudo find "$CURRENT" -type f -exec chmod 664 {} \;
+sudo find "$CURRENT" -type d -exec chmod 775 {} \;
+sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT/storage"
+sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT/bootstrap"
+sudo chmod 777 "$CURRENT/storage" -R
+sudo chmod 777 "$CURRENT/bootstrap" -R
 
 ## Make Logs Directory
 mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
-chown www-data:www-data "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+# putting owner_group twice here for a www-data:www-data setup 
+# despite owner_user being set as something potentially different eg. ubuntu
+chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+
+## Laravel specific setup - file permissions
+printf "============ Adjust Laravel File Permissions\n"
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
