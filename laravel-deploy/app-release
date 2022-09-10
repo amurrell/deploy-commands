@@ -158,7 +158,7 @@ sudo chmod 777 "$CURRENT/storage" -R
 sudo chmod 777 "$CURRENT/bootstrap" -R
 
 ## Make Logs Directory
-mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+sudo mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
 # putting owner_group twice here for a www-data:www-data setup 
