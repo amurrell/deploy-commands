@@ -111,6 +111,7 @@ From that folder, run your `pm2 start`
 | laravellogsfolder | `logs`, `DockerLocal/logs` | Optional - makes a directory `logs` by default, but nothing else happens - useful to create this directory for pointing php/nginx log files to
 | owner_user | `www-data`, `ubuntu` | Optional - default is `www-data` and is used with chown command on laravel files<br>eg.<br>`sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT"`<br> or derived, <br>`sudo chown -R ubuntu:www-data /var/www/laravel` |
 | owner_group | `www-data`, `ubuntu` | Optional - default is `www-data` and is used with chown command on laravel files<br>eg.<br>`sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT"`<br> or derived, <br>`sudo chown -R ubuntu:www-data /var/www/laravel` |
+| npm_command | `npm run build`, `npm run production` | Optional - default is `npm run build`. |
 
 Laravel deployments uses **a releases folder** such that the directory structure looks like this:
 

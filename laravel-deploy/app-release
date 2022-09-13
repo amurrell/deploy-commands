@@ -36,7 +36,7 @@ fi
 
 # Put the directory owner user into owner_user to change it from www-data
 if [ -f owner_user ]; then
-    OWNER_USER=$(<owner_group)
+    OWNER_USER=$(<owner_user)
 else
     OWNER_USER='www-data'
 fi
@@ -46,6 +46,13 @@ if [ -f owner_group ]; then
     OWNER_GROUP=$(<owner_group)
 else
     OWNER_GROUP='www-data'
+fi
+
+# Put the directory owner group into owner_group to change it from www-data
+if [ -f npm_command ]; then
+    NPM_COMMAND=$(<npm_command)
+else
+    NPM_COMMAND='npm run build'
 fi
 
 printf "$LARAVELFOLDER_LOCATION"
