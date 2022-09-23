@@ -184,6 +184,4 @@ set +a
 if [ "$A" == "true" ]; then
     printf "Building Assets...\n"
     ./build-assets
-    # chown the assets folder - and build directories etc.
-    sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT"
 fi

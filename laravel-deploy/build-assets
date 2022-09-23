@@ -2,6 +2,20 @@
 
 BUILDING_FROM=$(pwd)
 
+# Put the directory owner user into owner_user to change it from www-data
+if [ -f owner_user ]; then
+    OWNER_USER=$(<owner_user)
+else
+    OWNER_USER='www-data'
+fi
+
+# Put the directory owner group into owner_group to change it from www-data
+if [ -f owner_group ]; then
+    OWNER_GROUP=$(<owner_group)
+else
+    OWNER_GROUP='www-data'
+fi
+
 if [ -f npm_command ]; then
     NPM_COMMAND=$(<npm_command)
 else
@@ -43,6 +57,9 @@ cp "$BUILDING_FROM/assetsenvfile" ./.env
 
 # eg nvm use, npm install, build (needs interactive (-i) bc nvm npm etc are bash profile based)
 bash -c -i "$NPM_COMMAND"
+
+# chown the assets folder - and build directories etc.
+sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT"
 
 # Go back to deploy from
 cd $BUILDING_FROM
