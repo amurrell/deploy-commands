@@ -2,6 +2,8 @@
 
 BUILDING_FROM=$(pwd)
 
+V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
+
 # Put the directory owner user into owner_user to change it from www-data
 if [ -f owner_user ]; then
     OWNER_USER=$(<owner_user)
@@ -31,10 +33,15 @@ else
     ASSETSFOLDER_LOCATION=''
 fi
 
+
 # If release is empty... let the user tell us which one:
 if [ "$RELEASE" == "" ]; then
-    # prompt for a release name
-    read -p "Release Name - eg 1.0.1: " RELEASE
+    # PROMPT Release Name
+    if [ "$V" == "$*" ]; then
+        read -p "Release Name - eg 1.0.1: " RELEASE
+    else
+        RELEASE=$V
+    fi
 fi
 
 # Get one level up, out of commands
