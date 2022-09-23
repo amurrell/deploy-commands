@@ -41,8 +41,8 @@ rm -rf node_modules
 # Copy the assets dotenv file
 cp "$BUILDING_FROM/assetsenvfile" ./.env
 
-# eg nvm use, npm install, build
-eval $NPM_COMMAND
+# eg nvm use, npm install, build (needs interactive (-i) bc nvm npm etc are bash profile based)
+bash -c -i "$NPM_COMMAND"
 
 # Go back to deploy from
 cd $BUILDING_FROM

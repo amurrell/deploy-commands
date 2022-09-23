@@ -107,8 +107,8 @@ else
     printf "Warning: You still need to setup the .env file for this release.\n"
 fi
 
-# npm things
-eval $NPM_COMMAND
+# npm things - (needs interactive (-i) bc nvm npm etc are bash profile based)
+bash -c -i "$NPM_COMMAND"
 
 # go back to root of repo
 cd ../
