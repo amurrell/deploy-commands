@@ -14,6 +14,13 @@ else
     APP_ENVFILE=''
 fi
 
+# Figure out the npm command to run
+if [ -f npm_command ]; then
+    NPM_COMMAND=$(<npm_command)
+else
+    NPM_COMMAND='npm install && npm run build'
+fi
+
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -100,9 +107,8 @@ else
     printf "Warning: You still need to setup the .env file for this release.\n"
 fi
 
-# npm things
-npm install
-npm run build
+# npm things - (needs interactive (-i) bc nvm npm etc are bash profile based)
+bash -c -i "$NPM_COMMAND"
 
 # go back to root of repo
 cd ../

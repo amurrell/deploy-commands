@@ -22,6 +22,20 @@ else
     VERSION=$V
 fi
 
+# Put the directory owner user into owner_user to change it from www-data
+if [ -f owner_user ]; then
+    OWNER_USER=$(<owner_user)
+else
+    OWNER_USER='www-data'
+fi
+
+# Put the directory owner group into owner_group to change it from www-data
+if [ -f owner_group ]; then
+    OWNER_GROUP=$(<owner_group)
+else
+    OWNER_GROUP='www-data'
+fi
+
 # Check that either -s or server (appservername) are set
 if [ "$S" == "$*" ] && [ "$SERVER" == "" ]; then
     printf "You must specify which pm2 app server to use - eg. -s=someserver\n"
@@ -45,7 +59,11 @@ BASEPATH=$(pwd)
 NEWPATH="$BASEPATH/$VERSION"
 printf "${NEWPATH}\n"
 
+# Create symoblic link
 ln -sfn $NEWPATH current
+
+# fix permissions on symbolic link
+sudo chown -h $OWNER_USER:$OWNER_GROUP current
 
 # reload the server
 CMD="pm2 reload $SERVER"

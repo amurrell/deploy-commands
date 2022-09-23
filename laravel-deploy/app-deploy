@@ -17,6 +17,20 @@ else
     VERSION=$V
 fi
 
+# Put the directory owner user into owner_user to change it from www-data
+if [ -f owner_user ]; then
+    OWNER_USER=$(<owner_user)
+else
+    OWNER_USER='www-data'
+fi
+
+# Put the directory owner group into owner_group to change it from www-data
+if [ -f owner_group ]; then
+    OWNER_GROUP=$(<owner_group)
+else
+    OWNER_GROUP='www-data'
+fi
+
 # Put test commands in test_command file
 if [ -f test_command ]; then
     TEST_CMD=$(<test_command)
@@ -41,7 +55,11 @@ printf "${NEWPATH}\n"
 cd $DEPLOYING_FROM
 cd ../
 
+# make symbolic link
 ln -sfn $NEWPATH current
+
+# correct permissions on the symbolic link
+sudo chown -h $OWNER_USER:$OWNER_GROUP current
 
 # Go back into commands
 cd $DEPLOYING_FROM

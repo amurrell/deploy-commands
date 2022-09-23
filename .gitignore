@@ -1,8 +1,24 @@
+# PM2 Server Name
 appservername
+
+# App Repository for git clone
 apprepo
+
+# Folders
 laravelfolder
 laravellogsfolder
+assetsfolder
+
+# Env Files
+assetsenvfile
+appenvfile
 laravelenvfile
-nuxtenvfile
+
+# Commands
+npm_command
 reload_command
 test_command
+
+# Ownership
+owner_user
+owner_group
