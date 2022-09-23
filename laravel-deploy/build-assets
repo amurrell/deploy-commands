@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+BUILDING_FROM=$(pwd)
+
+if [ -f npm_command ]; then
+    NPM_COMMAND=$(<npm_command)
+else
+    NPM_COMMAND='npm install && npm run build'
+fi
+
+# Put assets folder in a relative file assetsfolder
+# Assets folder is where your package.json file is, typically in app/resources - but provide the whole path
+# eg. app/resources/myfrontendproject/
+if [ -f laravelfolder ]; then
+    ASSETSFOLDER_LOCATION=$(<assetsfolder)
+else
+    ASSETSFOLDER_LOCATION=''
+fi
+
+# If release is empty... let the user tell us which one:
+if [ "$RELEASE" == "" ]; then
+    # prompt for a release name
+    read -p "Release Name - eg 1.0.1: " RELEASE
+fi
+
+# Get one level up, out of commands
+cd ../releases
+
+# Inherited from app-release
+cd $RELEASE
+
+# cd into app
+cd $ASSETSFOLDER_LOCATION
+
+# Set ASSETS_DIR
+ASSETS_DIR=$(pwd)
+
+# Remove node_modules folder
+rm -rf node_modules
+
+# Copy the assets dotenv file
+cp "$BUILDING_FROM/assetsenvfile" ./.env
+
+# eg nvm use, npm install, build
+eval $NPM_COMMAND
+
+# Go back to deploy from
+cd $BUILDING_FROM

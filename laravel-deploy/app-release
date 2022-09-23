@@ -3,6 +3,8 @@
 # Copy this folder as "commands" and save in same directory as "current" release symlink.
 # Put all these config files directly into the commands folder.
 
+set -a
+
 RELEASING_FROM=$(pwd)
 
 # Put default repo in a relative file apprepo
@@ -48,13 +50,6 @@ else
     OWNER_GROUP='www-data'
 fi
 
-# Put the directory owner group into owner_group to change it from www-data
-if [ -f npm_command ]; then
-    NPM_COMMAND=$(<npm_command)
-else
-    NPM_COMMAND='npm run build'
-fi
-
 printf "$LARAVELFOLDER_LOCATION"
 printf "$LARAVELLOGSFOLDER_LOCATION"
 
@@ -63,12 +58,14 @@ R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 T=$(sed -e 's#.*\-t=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 B=$(sed -e 's#.*\-b=\([^[:space:]]*\?\).*#\1#' <<< "$*")
+A=$(sed -e 's#.*\-a=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 
 if [ "$H" == "-h" ]; then
     printf "Use -r to specify a repo, eg -r=git@xxx\n"
     printf "Use -v to specify release (eg. tag name)\n"
     printf "Use -t to use release as a tag, eg. -t=true or -t=false\n"
     printf "Use -b to specify a branch to change to, eg. -b=dev or -b=false\n"
+    printf "Use -a to specify whether to build assets, eg. -a=true or -a=false (true by default)\n"
     exit 1;
 fi
 
@@ -134,6 +131,11 @@ elif [ "$B" != "false" ]; then
     git checkout -b "$B" "origin/$B"
 fi
 
+# Default to building assets if not set
+if [ "$A" == "$*" ]; then
+    A="true"
+fi
+
 # Go into the laravel app folder
 cd "$LARAVELFOLDER_LOCATION"
 CURRENT=$(pwd)
@@ -174,3 +176,14 @@ sudo chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
+
+## Finish Export of Vars
+set +a
+
+## Build Assets, if A=true
+if [ "$A" == "true" ]; then
+    printf "Building Assets...\n"
+    ./build-assets
+    # chown the assets folder - and build directories etc.
+    sudo chown -R $OWNER_USER:$OWNER_GROUP "$CURRENT"
+fi
