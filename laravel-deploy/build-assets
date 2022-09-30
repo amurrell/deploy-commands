@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -a 
+
 BUILDING_FROM=$(pwd)
 
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -55,6 +57,8 @@ cd $ASSETSFOLDER_LOCATION
 
 # Set ASSETS_DIR
 ASSETS_DIR=$(pwd)
+
+set +a
 
 # Remove node_modules folder
 rm -rf node_modules

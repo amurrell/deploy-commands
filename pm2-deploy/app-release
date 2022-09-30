@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -a
+
 RELEASING_FROM=$(pwd)
 
 # Put default repo in a relative file apprepo
@@ -106,6 +108,8 @@ if [ ! "$APP_ENVFILE" == "" ]; then
 else
     printf "Warning: You still need to setup the .env file for this release.\n"
 fi
+
+set +a
 
 # npm things - (needs interactive (-i) bc nvm npm etc are bash profile based)
 bash -c -i "$NPM_COMMAND"
