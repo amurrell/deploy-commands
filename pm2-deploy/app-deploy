@@ -49,6 +49,16 @@ else
     fi
 fi
 
+# Put test commands in test_command file
+if [ -f test_command ]; then
+    TEST_CMD=$(<test_command)
+fi
+
+# Put reload commands in reload_command file
+if [ -f reload_command ]; then
+    RELOAD_CMD=$(<reload_command)
+fi
+
 printf "Going to deploy $V\n"
 
 # Get one level up, out of commands
@@ -72,3 +82,34 @@ eval $CMD
 
 # Go back into commands
 cd commands
+
+# Test CMD - then if reload command exists, run it if 0 (good) exit code.
+if [ "$TEST_CMD" != '' ]; then
+    printf "==== ⏳ Detected TEST Command, so running TEST command...\n"
+    
+    eval $TEST_CMD
+
+    status=$?
+
+    if [ $status -eq 0 ]; then
+        printf "==== ✅ Test Command: SUCCESS\n"
+
+        # If reload command exists, run it
+        if [ "$RELOAD_CMD" != '' ]; then
+            printf "==== ⏳ Detected RELOAD Command, so running RELOAD command...\n"
+            eval $RELOAD_CMD
+            status=$?
+
+            if [ $status -eq 0 ]; then
+                printf "==== ✅ Reload Command: SUCCESS\n"
+            else
+                printf "==== ❌ Reload Command: FAILED\n"
+            fi
+        fi
+        
+    else
+        printf "==== ❌ Test Command: FAIL\n"
+        exit 1
+    fi
+    
+fi
