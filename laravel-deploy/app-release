@@ -50,9 +50,6 @@ else
     OWNER_GROUP='www-data'
 fi
 
-printf "$LARAVELFOLDER_LOCATION"
-printf "$LARAVELLOGSFOLDER_LOCATION"
-
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")

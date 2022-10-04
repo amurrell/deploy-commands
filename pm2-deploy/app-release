@@ -9,11 +9,33 @@ if [ -f apprepo ]; then
     DEFAULT_REPO=$(<apprepo)
 fi
 
+# Put app logs folder in a relative file applogsfolder
+# Logs folder needs to be within the release (repo)
+if [ -f applogsfolder ]; then
+    APPLOGSFOLDER_LOCATION=$(<applogsfolder)
+else
+    APPLOGSFOLDER_LOCATION='logs'
+fi
+
 # Put the .env file you want to copy into the releases into a relative file appenvfile
 if [ -f appenvfile ]; then
     APP_ENVFILE=$(<appenvfile)
 else
     APP_ENVFILE=''
+fi
+
+# Put the directory owner user into owner_user to change it from www-data
+if [ -f owner_user ]; then
+    OWNER_USER=$(<owner_user)
+else
+    OWNER_USER='www-data'
+fi
+
+# Put the directory owner group into owner_group to change it from www-data
+if [ -f owner_group ]; then
+    OWNER_GROUP=$(<owner_group)
+else
+    OWNER_GROUP='www-data'
 fi
 
 # Figure out the npm command to run
@@ -50,7 +72,7 @@ else
     fi
 fi
 
-# Get one leve up, out of commands
+# Get one level up, out of commands, and into releases folder
 cd ../
 
 # PROMPT Release Name
@@ -98,6 +120,16 @@ elif [ "$B" != "false" ]; then
     git checkout -b "$B" "origin/$B"
 fi
 
+REPO_ROOT=$(pwd)
+
+# Add Logs Folder
+sudo mkdir -p "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
+
+## Change ownership of the logs folder
+# putting owner_group twice here for a www-data:www-data setup 
+# despite owner_user being set as something potentially different eg. ubuntu
+sudo chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
+
 # Go into the repo's app folder, where npm is?
 cd app
 CURRENT=$(pwd)
@@ -119,5 +151,5 @@ cd ../
 # go back to root of releases
 cd ../
 
-# Go back into commands
-cd commands
+# Go back to root of your whole project, and into commands
+cd ../commands

@@ -71,6 +71,7 @@ Place your config files into the commands folder directly, like this:
 | appservername | `my-app-server` | Optional - the name of the server used in pm2, only needed to avoid being prompted everytime |
 | appenvfile | `BASE_API_URL=https://someurl` | Optional - If you need to use a dotenv file with deploys on this server |
 | npm_command | `npm install && npm run build`, `npm run production` | Optional - default is `npm install && npm run build`. |
+| applogsfolder | `logs`, `DockerLocal/logs` | Optional - makes a directory `logs` by default, but nothing else happens - useful to create this directory for pointing php/nginx log files to
 
 The **appservername** should correlate to your ecosystem file, if you are using one with pm2. 
 
@@ -98,9 +99,10 @@ Where your directory structure might look like:
 - yoursite.com
 ----- deploy-commands
 ----- commands      # symbolic link to deploy-commands/pm2-deploy
------ 1.0.0         # release on tag
------ 1.0.1         # release on tag
------ dev           # release on branch
+----- releases
+  ----- 1.0.0         # release on tag
+  ----- 1.0.1         # release on tag
+  ----- dev           # release on branch
 ----- ecosystem.config.js
 ```
 
