@@ -56,7 +56,7 @@ cd ../
 
 # Update the symbolic link current
 BASEPATH=$(pwd)
-NEWPATH="$BASEPATH/$VERSION"
+NEWPATH="$BASEPATH/releases/$VERSION"
 printf "${NEWPATH}\n"
 
 # Create symoblic link
