@@ -73,7 +73,7 @@ else
 fi
 
 # Get one level up, out of commands, and into releases folder
-cd ../
+cd ../releases
 
 # PROMPT Release Name
 if [ "$V" == "$*" ]; then
@@ -126,9 +126,7 @@ REPO_ROOT=$(pwd)
 sudo mkdir -p "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
-# putting owner_group twice here for a www-data:www-data setup 
-# despite owner_user being set as something potentially different eg. ubuntu
-sudo chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
+sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
 
 # Go into the repo's app folder, where npm is?
 cd app

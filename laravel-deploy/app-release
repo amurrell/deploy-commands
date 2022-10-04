@@ -167,9 +167,7 @@ sudo chmod 777 "$CURRENT/bootstrap" -R
 sudo mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
-# putting owner_group twice here for a www-data:www-data setup 
-# despite owner_user being set as something potentially different eg. ubuntu
-sudo chown $OWNER_GROUP:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
