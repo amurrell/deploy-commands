@@ -50,6 +50,13 @@ else
     OWNER_GROUP='www-data'
 fi
 
+# Figure out if we have an assetsfolder
+if [ -f laravelfolder ]; then
+    ASSETSFOLDER_LOCATION=$(<assetsfolder)
+else
+    ASSETSFOLDER_LOCATION=''
+fi
+
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -130,7 +137,13 @@ fi
 
 # Default to building assets if not set
 if [ "$A" == "$*" ]; then
-    A="true"
+    # try do detect $ASSETSFOLDER_LOCATION/package.json
+    # if it exists, build assets - A="true"
+    if [ -f "$REPO_ROOT/$ASSETSFOLDER_LOCATION/package.json" ]; then
+        A="true"
+    else
+        A="false"
+    fi
 fi
 
 # Go into the laravel app folder

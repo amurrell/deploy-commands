@@ -1,0 +1,1 @@
+cd $RELEASING_FROM && ./npm_command.sh
