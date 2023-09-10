@@ -1,35 +1,11 @@
 #!/usr/bin/env bash
 
+# Copy this folder as "commands" and save in same directory as "current" release symlink.
+# Put all these config files directly into the commands folder.
+
 set -a
 
 RELEASING_FROM=$(pwd)
-
-# Put default repo in a relative file apprepo
-if [ -f apprepo ]; then
-    DEFAULT_REPO=$(<apprepo)
-fi
-
-# Where app folder is in the repo (relative to root of repo)
-if [ -f appfolder ]; then
-    APPFOLDER=$(<appfolder)
-else
-    APPFOLDER=''
-fi
-
-# Put app logs folder in a relative file applogsfolder
-# Logs folder needs to be within the release (repo)
-if [ -f applogsfolder ]; then
-    APPLOGSFOLDER_LOCATION=$(<applogsfolder)
-else
-    APPLOGSFOLDER_LOCATION='logs'
-fi
-
-# Put the .env file you want to copy into the releases into a relative file appenvfile
-if [ -f appenvfile ]; then
-    APP_ENVFILE=$(<appenvfile)
-else
-    APP_ENVFILE=''
-fi
 
 # Put the directory owner user into owner_user to change it from www-data
 if [ -f owner_user ]; then
@@ -45,11 +21,26 @@ else
     OWNER_GROUP='www-data'
 fi
 
-# Figure out the npm command to run
-if [ -f npm_command ]; then
-    NPM_COMMAND=$(<npm_command)
+# Put default repo in a relative file apprepo
+if [ -f apprepo ]; then
+    DEFAULT_REPO=$(<apprepo)
+fi
+
+# Put logs folder eg. logs/ in a relative file logsfolder
+# Logs folder needs to be within the release (repo) and the value relative to the root of the repo
+if [ -f logsfolder ]; then
+    LOGSFOLDER_LOCATION=$(<logsfolder)
 else
-    NPM_COMMAND='npm install && npm run build'
+    LOGSFOLDER_LOCATION='logs'
+fi
+
+# Put assets folder in a relative file assetsfolder
+# Assets folder is where your package.json file is, typically in app/resources - but provide the whole path
+# eg. app/resources/myfrontendproject/
+if [ -f assetsfolder ]; then
+    ASSETSFOLDER_LOCATION=$(<assetsfolder)
+else
+    ASSETSFOLDER_LOCATION=''
 fi
 
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -79,8 +70,12 @@ else
     fi
 fi
 
-# Get one level up, out of commands, and into releases folder
-cd ../releases
+# where the site is
+APP_PATH=$(pwd)
+
+# Get one level up, out of commands
+cd releases
+RELEASES_FOLDER=$(pwd)
 
 # PROMPT Release Name
 if [ "$V" == "$*" ]; then
@@ -95,6 +90,9 @@ CMD="git clone $REPO $RELEASE"
 eval $CMD
 # Go into the repo
 cd $RELEASE
+REPO_ROOT=$(pwd)
+RELEASE_PATH=$(pwd)
+ASSETS_PATH="$RELEASE_PATH/$ASSETSFOLDER_LOCATION"
 
 # PROMPT If Tag
 if [ "$T" == "$*" ]; then
@@ -102,6 +100,7 @@ if [ "$T" == "$*" ]; then
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
+        T='true'
         git fetch --tags
         git checkout $RELEASE
     fi
@@ -127,34 +126,38 @@ elif [ "$B" != "false" ]; then
     git checkout -b "$B" "origin/$B"
 fi
 
-REPO_ROOT=$(pwd)
-
-# Add Logs Folder
-sudo mkdir -p "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
-
-## Change ownership of the logs folder
-sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
-
-# Go into the repo's appfolder, where npm is?
-cd $REPO_ROOT/$APPFOLDER
-CURRENT=$(pwd)
-
-# add a dot env file if we have one
-if [ ! "$APP_ENVFILE" == "" ]; then
-    echo "$APP_ENVFILE" >> "$CURRENT/.env"
-else
-    printf "Warning: You still need to setup the .env file for this release.\n"
+# Make symbolic link for uploads directory
+if [ -d "$APP_PATH/uploads" ]; then
+    ln -sfn "$APP_PATH/uploads" "$RELEASE_PATH/html/wp-content/uploads"
 fi
+
+## Make Logs Directory
+mkdir -p "$RELEASE_PATH/$LOGSFOLDER_LOCATION"
+
+## Build Assets
+# If ASSETSFOLDER_LOCATION and NPM_COMMAND are not empty
+if [ "$ASSETSFOLDER_LOCATION" != "" ] && [ "$NPM_COMMAND" != "" ]; then
+    cd $ASSETS_PATH
+    printf "=== The Assets Path: $ASSETS_PATH\n"
+    # Remove node_modules folder
+    rm -rf node_modules
+    bash -c -i "$NPM_COMMAND"
+fi
+
+## Change ownership of all the repo
+chown $OWNER_USER:$OWNER_GROUP "$RELEASE_PATH" -R
+
+## Change back to the commands directory
+cd $RELEASING_FROM
 
 set +a
 
-# npm things - (needs interactive (-i) bc nvm npm etc are bash profile based)
+# Build production wordpress
+if [ -f npm_command ]; then
+    NPM_COMMAND=$(<npm_command)
+else
+    NPM_COMMAND='npm install && npm run build'
+fi
+
+# eg nvm use, npm install, build (needs interactive (-i) bc nvm npm etc are bash profile based)
 bash -c -i "$NPM_COMMAND"
-
-# go back to root of repo
-cd ../
-# go back to root of releases
-cd ../
-
-# Go back to root of your whole project, and into commands
-cd ../commands

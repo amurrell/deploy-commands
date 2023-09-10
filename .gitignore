@@ -5,10 +5,12 @@ appservername
 apprepo
 
 # Folders
+appfolder
 laravelfolder
 laravellogsfolder
 assetsfolder
 applogsfolder
+logsfolder
 
 # Env Files
 assetsenvfile
@@ -16,9 +18,9 @@ appenvfile
 laravelenvfile
 
 # Commands
-npm_command
-reload_command
-test_command
+npm_command*
+reload_command*
+test_command*
 
 # Ownership
 owner_user
