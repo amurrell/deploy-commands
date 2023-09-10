@@ -1,1 +1,1 @@
-npm install && npm run build
+nvm use && npm install && npm run production
