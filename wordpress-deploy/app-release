@@ -149,15 +149,3 @@ chown $OWNER_USER:$OWNER_GROUP "$RELEASE_PATH" -R
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
-
-set +a
-
-# Build production wordpress
-if [ -f npm_command ]; then
-    NPM_COMMAND=$(<npm_command)
-else
-    NPM_COMMAND='npm install && npm run build'
-fi
-
-# eg nvm use, npm install, build (needs interactive (-i) bc nvm npm etc are bash profile based)
-bash -c -i "$NPM_COMMAND"
