@@ -73,8 +73,8 @@ fi
 # where the site is
 APP_PATH=$(pwd)
 
-# Get one level up, out of commands
-cd releases
+# Get one level up, out of commands and into releases
+cd ../releases
 RELEASES_FOLDER=$(pwd)
 
 # PROMPT Release Name
