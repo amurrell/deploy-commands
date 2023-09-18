@@ -144,10 +144,8 @@ mkdir -p "$RELEASE_PATH/$LOGSFOLDER_LOCATION"
 ## Build Assets
 # If ASSETSFOLDER_LOCATION and NPM_COMMAND are not empty
 if [ "$ASSETSFOLDER_LOCATION" != "" ] && [ "$NPM_COMMAND" != "" ]; then
-    cd $ASSETS_PATH
     printf "=== The Assets Path: $ASSETS_PATH\n"
-    # Remove node_modules folder
-    rm -rf node_modules
+    set +a
     bash -c -i "$NPM_COMMAND"
 fi
 
