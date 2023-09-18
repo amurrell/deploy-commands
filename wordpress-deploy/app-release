@@ -43,6 +43,13 @@ else
     ASSETSFOLDER_LOCATION=''
 fi
 
+# Figure out the npm command to run
+if [ -f npm_command ]; then
+    NPM_COMMAND=$(<npm_command)
+else
+    NPM_COMMAND='npm install && npm run build'
+fi
+
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
