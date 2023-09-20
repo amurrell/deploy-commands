@@ -25,6 +25,13 @@ Clone the repo, create symbolic link to commands folder you need.
 - [Laravel](#laravel-deploy-commands-config)
 - [Wordpress](#wordpress-deploy-commands-config)
 
+
+**Automated Deployments via Github Workflow**
+
+For more information about this, skip to the section below: [Automated Deployments via Github Workflow](#automated-deployments-via-github-workflow)
+
+[↑ Top](#install)
+
 ---
 
 ## Usage
@@ -235,3 +242,77 @@ Wordpress deployments uses **a releases folder** such that the directory structu
 ---------- 1.0.1         # release on tag
 ---------- dev           # release on branch
 ```
+
+[↑ Top](#install)
+
+---
+
+## Automated Deployments via Github Workflow
+
+Follow these steps to set up a deployment process via github workflows for your project:
+
+1. **Integrate Workflow File & Setup Key Pairs**
+
+    Copy the `deploy-workflow.yml` into your site's repository under the `.github/workflows/` directory:
+
+    ```bash
+    cp deploy-workflow.yml /path/to/your/site/repo/.github/workflows/deploy.yml
+    ```
+
+    Ensure you save secrets to your repository for the following:
+
+    - SERVER_ADDRESS
+    - SERVER_SSH_KEY (private key)
+    - DEPLOY_USER
+
+    And store the public key of your server in the `authorized_keys` file of the deployment user. eg. /home/ubuntu/.ssh/authorized_keys
+
+    _If you have this repo on different servers, you'd want to add to this workflow file to do some routing - eg. "if the branch is main or a tag release, deploy to production server, else deploy to dev server" and that would mean setting up more secrets - eg. `PROD_SERVER_ADDRESS`_
+
+2. **Create a Deploy Script on Server**
+
+    Copy the `deploy.sh` script to the home directory of the deployment user on your server:
+
+    ```bash
+    scp deploy.sh user@your.server.ip:~/
+    ```
+
+3. **Create Configuration File**
+
+    On the server, in the home directory of the deployment user, create a configuration file named `deploy.config.json`. It should match the following structure:
+
+    ```json
+    {
+      "<user>/<repo-name>": {
+        "<env>": {
+          "commands": "/var/www/<domain>/commands",
+          "releases": "/var/www/<domain>/releases"
+        }
+      }
+    }
+    ```
+
+    _If your server has only 1 env setting, it will not do any branch/tag related checks to decide which `/var/www/<folder>` to deploy to. This is useful if you handled that in the workflow file instead, eg the environments are spread across different servers._
+
+- `<env>` can have values like `prod` which maps to domain structures like `www.site.com` or `site.com`.
+- Any subdomain, like dev.site.com, would have an `<env>` value of `dev`.
+
+The structure relies on the `deploy-commands` file structure convention:
+
+- `/var/www/<domain>/deploy-commands`
+- `/var/www/<domain>/releases`
+- `/var/www/<domain>/current` (this should be a symlink pointing to a specific version in the releases directory)
+
+### Generate Config File Automatically
+
+If you'd prefer to automate the creation of the `deploy.config.json` file, you can fetch our pre-made script:
+
+```bash
+curl https://github.com/amurrell/SimpleDocker/scripts/templates/070-deploy-config-RAOU.sh -o generate-deploy-config.sh
+chmod +x generate-deploy-config.sh
+./generate-deploy-config.sh
+```
+
+This script will inspect the `/var/www/` directory on your server, identify domain folders that contain `deploy-commands` repo, and generate the `deploy.config.json` file accordingly.
+
+[↑ Top](#install)

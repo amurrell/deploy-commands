@@ -1,0 +1,34 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - master
+  release:
+    types:
+      - published
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy to server
+      env:
+        SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        SERVER_ADDRESS: ${{ secrets.SERVER_ADDRESS }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      run: |
+        echo "$SERVER_SSH_KEY" > private_key.pem
+        chmod 600 private_key.pem
+
+        if [ "${{ github.event_name }}" == "push" ]; then
+          ssh -i private_key.pem $DEPLOY_USER@$SERVER_ADDRESS "./deploy --repo=${{ github.repository }} --branch=${{ github.ref }}"
+        elif [ "${{ github.event_name }}" == "release" ]; then
+          ssh -i private_key.pem $DEPLOY_USER@$SERVER_ADDRESS "./deploy --repo=${{ github.repository }} --tag=${{ github.ref }}"
+        fi
+
+        rm -f private_key.pem
