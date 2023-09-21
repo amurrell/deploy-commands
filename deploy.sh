@@ -5,6 +5,7 @@ set -e
 
 BRANCH='main'
 TAG=''
+WORKING_DIR=$(pwd)
 
 # source .bashrc for node
 printf "============ Source bash profile again to ensure node access\n"
@@ -51,7 +52,7 @@ fi
 # Parse deploy.config.json using Node.js
 getConfig() {
     # assumes the deploy.config.json is in the same location as deploy.sh (and typically at deploy user home directory.)
-    echo "const data = require('deploy.config.json'); console.log(JSON.stringify(data['$REPO']));" | node
+    echo "const data = require('$WORKING_DIR/deploy.config.json'); console.log(JSON.stringify(data['$REPO']));" | node
 }
 
 CONFIG=$(getConfig)
