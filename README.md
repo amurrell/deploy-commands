@@ -266,6 +266,7 @@ Follow these steps to set up a deployment process via github workflows for your 
     - SERVER_ADDRESS
     - SERVER_SSH_KEY (private key)
     - DEPLOY_USER
+    - SERVER_KEYSCAN (get from local, trusted machine that has connected before - eg. run `ssh-keyscan your.server.ip` and paste into secret)
 
     And store the public key of your server in the `authorized_keys` file of the deployment user. eg. /home/ubuntu/.ssh/authorized_keys
 
