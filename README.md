@@ -311,9 +311,12 @@ The structure relies on the `deploy-commands` file structure convention:
 If you'd prefer to automate the creation of the `deploy.config.json` file, you can fetch our pre-made script:
 
 ```bash
-curl https://github.com/amurrell/SimpleDocker/scripts/templates/070-deploy-config-RAOU.sh -o generate-deploy-config.sh
+curl -o generate-deploy-config.sh https://raw.githubusercontent.com/amurrell/SimpleDocker/dev/scripts/templates/090-deploy-config-RAOU.sh 
 chmod +x generate-deploy-config.sh
-./generate-deploy-config.sh
+
+# while at it, copy in the deploy.sh to your server too
+curl -O https://raw.githubusercontent.com/amurrell/deploy-commands/main/deploy.sh
+chmod +x deploy.sh
 ```
 
 This script will inspect the `/var/www/` directory on your server, identify domain folders that contain `deploy-commands` repo, and generate the `deploy.config.json` file accordingly.
