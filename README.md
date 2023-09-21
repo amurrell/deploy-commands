@@ -259,6 +259,8 @@ Follow these steps to set up a deployment process via github workflows for your 
     cp deploy-workflow.yml /path/to/your/site/repo/.github/workflows/deploy.yml
     ```
 
+    Edit the branches you want to trigger the workflow on. By default, it is set to `main`, `dev` and release publishes.
+
     Ensure you save secrets to your repository for the following:
 
     - SERVER_ADDRESS

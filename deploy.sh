@@ -1,19 +1,57 @@
 #!/bin/bash
 
+# exit asap if something fails
+set -e
+
+BRANCH='main'
+TAG=''
+
+# source .bashrc for node
+printf "============ Source bash profile again to ensure node access\n"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+source ~/.bashrc
+
+# Display help information
+display_help() {
+    echo "Usage: $0 [OPTION]..."
+    echo
+    echo "Deploy a given repository."
+    echo
+    echo "Options:"
+    echo "  --repo REPO_NAME    Specify the repository name follwing pattern: <username>/<project>"
+    echo "  --branch BRANCH     Specify the branch name. eg. main, dev, staging"
+    echo "  --tag TAG_NAME      Specify the tag name. eg. 1.0.0"
+    echo "  --help              Display this help and exit."
+    echo
+    echo "You must provide at least the --repo option. Other options are optional."
+    echo "For example: $0 --repo user/project --branch main"
+}
+
 # Get parameters
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --repo) REPO="$2"; shift ;;
         --branch) BRANCH="$2"; shift ;;
         --tag) TAG="$2"; shift ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+        --help) display_help; exit 0 ;;
+        *) echo "Unknown parameter passed: $1"; display_help; exit 1 ;;
     esac
     shift
 done
 
+# Check for mandatory parameters
+if [[ -z "$REPO" ]]; then
+    echo "Error: --repo is a mandatory parameter."
+    display_help
+    exit 1
+fi
+
 # Parse deploy.config.json using Node.js
 getConfig() {
-    echo "const data = require('/path/to/deploy.config.json'); console.log(JSON.stringify(data['$REPO']));" | node
+    # assumes the deploy.config.json is in the same location as deploy.sh (and typically at deploy user home directory.)
+    echo "const data = require('deploy.config.json'); console.log(JSON.stringify(data['$REPO']));" | node
 }
 
 CONFIG=$(getConfig)

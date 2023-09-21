@@ -3,7 +3,8 @@ name: Deploy to Server
 on:
   push:
     branches:
-      - master
+      - main
+      - dev
   release:
     types:
       - published
