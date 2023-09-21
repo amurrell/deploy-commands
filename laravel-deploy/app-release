@@ -130,9 +130,24 @@ if [ "$B" == "$*" ]; then
         git checkout -b "$BRANCH" "origin/$BRANCH"
     fi
 elif [ "$B" != "false" ]; then
-    git fetch origin
-    echo "$B"
-    git checkout -b "$B" "origin/$B"
+        git fetch origin
+
+        # Check if git fetch was successful
+        if [ $? -eq 0 ]; then
+            echo "$B"
+
+            # Get current branch
+            current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+            # Check if the current branch is different from $B
+            if [ "$current_branch" != "$B" ]; then
+                git checkout -b "$B" "origin/$B"
+            else
+                echo "Already on branch $B. Skipping checkout."
+            fi
+        else
+            echo "Failed to fetch from origin. Aborting."
+        fi
 fi
 
 # Default to building assets if not set
