@@ -7,6 +7,9 @@ BRANCH='main'
 TAG=''
 WORKING_DIR=$(pwd)
 
+# This ensures that we have composer on the path
+export PATH=/home/$(whoami):$PATH
+
 # source .bashrc for node
 printf "============ Source bash profile again to ensure node access\n"
 export NVM_DIR="$HOME/.nvm"

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# error as soon as a command fails
+set -e
+
+# export all variables
 set -a
 
 RELEASING_FROM=$(pwd)
