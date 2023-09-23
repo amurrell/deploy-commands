@@ -8,6 +8,7 @@ on:
   release:
     types:
       - published
+
 jobs:
   deploy-prod:
     runs-on: ubuntu-latest
@@ -28,9 +29,9 @@ jobs:
     - name: Set up AWS CLI
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.DEV_AWS_REGION }}
+        aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.PROD_AWS_REGION }}
 
     # Send command via AWS SSM
     - name: Execute Command on Instance
@@ -45,7 +46,7 @@ jobs:
         fi
 
         # wrap COMMAND so that ubuntu can run it. We are root
-        RUN_AS_COMMAND="sudo -u ${{ secrets.DEV_INSTANCE_USER}} -i bash -c \"$COMMAND\""
+        RUN_AS_COMMAND="sudo -u ${{ vars.PROD_INSTANCE_USER}} -i bash -c \"$COMMAND\""
         # escape double quotes
         RUN_AS_COMMAND=${RUN_AS_COMMAND//\"/\\\"}
         echo "Executing command: $RUN_AS_COMMAND"
@@ -53,7 +54,7 @@ jobs:
         command_id=$(aws ssm send-command \
             --document-name 'AWS-RunShellScript' \
             --parameters "{\"commands\": [\"$RUN_AS_COMMAND\"]}" \
-            --instance-ids "${{ secrets.DEV_INSTANCE_ID }}" \
+            --instance-ids "${{ vars.PROD_INSTANCE_ID }}" \
             --output text \
             --query Command.CommandId)
 
@@ -61,39 +62,47 @@ jobs:
         set +e
         aws ssm wait command-executed \
             --command-id "${command_id}" \
-            --instance-id "${{ secrets.DEV_INSTANCE_ID }}"
+            --instance-id "${{ vars.PROD_INSTANCE_ID }}"
         # return to normal error handling
         set -e
+
+        while [ $(aws ssm list-commands --command-id $command_id --query "Commands[].Status" --output text) == "InProgress" ]; do
+            sleep 5
+        done
 
         # Check exit code
         exit_code=$(aws ssm list-command-invocations \
             --command-id "${command_id}" \
-            --instance-id "${{ secrets.DEV_INSTANCE_ID }}" \
+            --instance-id "${{ vars.PROD_INSTANCE_ID }}" \
             --query "CommandInvocations[].StatusDetails" \
             --output text)
 
-        # Get output
+        # Get standard output
+        echo "📝 AWS Command ID [${command_id}] - Standard Output:"
         aws ssm get-command-invocation \
             --command-id "${command_id}" \
-            --instance-id "${{ secrets.DEV_INSTANCE_ID }}" \
+            --instance-id "${{ vars.PROD_INSTANCE_ID }}" \
             --query "StandardOutputContent" \
             --output text \
             --no-cli-pager
 
+        # Get standard error
+        echo "📝 AWS Command ID [${command_id}] - Standard Error:"
+        # Get error output
+        aws ssm get-command-invocation \
+            --command-id "${command_id}" \
+            --instance-id "${{ vars.PROD_INSTANCE_ID }}" \
+            --query "StandardErrorContent" \
+            --output text \
+            --no-cli-pager
+
         # Printf the command link to be helpful
-        echo "Command link: https://console.aws.amazon.com/systems-manager/run-command/${{ secrets.DEV_AWS_REGION }}/${{ secrets.DEV_INSTANCE_ID }}/details/${command_id}"
+        echo "👀 AWS Console - Output command link: https://${{ vars.PROD_AWS_REGION}}.console.aws.amazon.com/systems-manager/run-command/${command_id}/${{ vars.PROD_INSTANCE_ID }}"
 
         # Now report on exit code and exit properly.
         if [ "$exit_code" = "Success" ]; then
-            echo "✅ Deploy Command succeeded"
+            echo "✅ Deploy Succeeded"
         else
-            echo "❌ Deploy Command failed"
-            # Get error output & don't wait for input
-            aws ssm get-command-invocation \
-                --command-id "${command_id}" \
-                --instance-id "${{ secrets.DEV_INSTANCE_ID }}" \
-                --query "StandardErrorContent" \
-                --output text \
-                --no-cli-pager
+            echo "❌ Deploy Failed"
             exit 1
         fi

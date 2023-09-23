@@ -1,48 +1,131 @@
-# Deploy commands
+# Deploy Commands
 
-Deploying applications can be streamlined using a set of commands. These commands facilitate various actions like releasing and deploying your application. Depending on the type of your application (e.g., Node, Laravel, WordPress), you can use the appropriate command set.
+Simplify your application deployments with a command set designed for pm2 process-managed Node.js Frameworks (Vue, React), Laravel, WordPress, and other html or PHP projects. 
 
-## Install
+Automate these deployments seamlessly using GitHub Actions (connection to deploy servers via ssh or aws-ssm) to optimize your development workflow for efficiency and ease.
 
-Navigate to the required directory and clone the repository. After cloning, create a symbolic link to the desired command folder:
-
+#### Preview: Directory Structure uses Releases Folder
 ```
-cd /var/www/yoursite.com
-git clone git@github.com:amurrell/deploy-commands.git
-ln -s deploy-commands/{TYPE}-deploy ./commands
+- yoursite.com
+-- deploy-commands
+-- commands           # symlink to deploy-commands/{type}-deploy
+-- releases
+---- 1.0.0            # release on tag
+---- 1.0.1            # release on tag
+---- dev              # release on branch
 ```
 
-Clone the repo, create symbolic link to commands folder you need.
+#### Preview: Basic Commands in Action
 
-> [!IMPORTANT]
-> **Be sure to change** `{TYPE}` to match either `pm2` (eg. node projects), `laravel` or `wordpress`.
+```bash
+cd /var/www/yoursite.com/commands
+
+./app-release -v=1.0.1 -t=true -b=false -r=<repo-url>
+./app-deploy -v=1.0.1 -s=my-app-server 
+```
+
+#### Preview: Github Action calls `deploy.sh` script to run the above sequence according to git event (eg. tag release `published` vs branch `push`)
+
+```bash
+cd ~/
+
+deploy.sh --repo user/project --branch dev
+# or
+deploy.sh --repo user/project --tag 1.0.1
+```
+
+#### How does it work & how can it be customized?
+
+👉 [Get started](#installation), jump to [contents](#contents), or enjoy this quick overview:
+
+- The `app-release` and `app-deploy` scripts look for sibling custom config files (eg. apprepo, appservername, applogsfolder, env files, etc) to minimize the need for lots of switches and to run the processes. 
+- Running custom build, test, reload processes is possible by writing your own scripts: `npm-command.sh` to be called during `app-release`,`test-command.sh` and subsequent `reload-command.sh` to enact if successful test-command in `app-deploy`. Working examples are provided!
+- For simplistic approach, you can use `app-release` interactively and manually execute builds and releases while in your server.
+- Optionally, for automatic deployments via Github Actions - Copy from an (SSH, or AWS-SSM) appropriate workflow template from deploy-commands to your project `.github/workflows/deploy.yml` and setup secrets and variables in github repo settings
+- `deploy.sh` uses [`deploy.config.json`](#step-2-create-a-deploy-script-on-server) to determine which `/var/www/site.com/commands` to use for the deployment.
+
+---
+
+## Contents
+
+- [Installation](#installation)
+- [Usage](#usage) - [Building](#building-a-release---prompted-vs-unprompted) | [Deploying](#deploy-any-release---unprompted-only)
+- [Setup Config Files](#setup-config-files) - [General](#generic-deploy-commands-config) | [PM2](#pm2-deploy-commands-config) | [Laravel](#laravel-deploy-commands-config) | [Wordpress/PHP](#wordpress-deploy-commands-config)
+- [Automated Deployments via Github Actions](#automated-deployments-via-github-actions)
+  
+  → [Step 1: Copy Workflows & Setup in Github](#step-1-copy-workflows-and-setup-in-github)
+    
+    - [Option A: SSH Workflow](#option-a) | [Option B: AWS SSM Workflows](#option-b)
+  
+  → [Step 2: Create a Deploy Script on Server](#step-2-create-a-deploy-script-on-server)
+
+---
+
+## Installation
+
+> 💡 If you want to test this deployment process locally, you can use [amurrell/SimpleDocker](https://github.com/amurrell/SimpleDocker) (a blank docker ubuntu container) to setup your site and deploy-commands repo.
 
 
-[Add configuration files](#setup-config-files) for skipping prompts and better automation by adding files to your commands folder, see below:
+To get started, follow these steps:
 
-- [Generic - all {type}s](#generic-deploy-commands-config)
-- [PM2](#pm2-deploy-commands-config)
-- [Laravel](#laravel-deploy-commands-config)
-- [Wordpress](#wordpress-deploy-commands-config)
+1. On your server, navigate to `/var/www/<yoursite.com>`. If `<yoursite.com>` is your project's repo, you need to move it to `/var/www/<yoursite.com>/releases/<git-project>`.
 
+1. Clone this repository:
 
-**Automated Deployments via Github Workflow**
+    ```bash
+    cd /var/www/yoursite.com
+    git clone git@github.com:amurrell/deploy-commands.git
+    ```
 
-For more information about this, skip to the section below: [Automated Deployments via Github Workflow](#automated-deployments-via-github-workflow)
+1. Create a symbolic link to the appropriate command folder based on your application type:
 
-[↑ Top](#install)
+    ```bash
+    ln -s deploy-commands/{TYPE}-deploy ./commands
+    ```
+
+    Replace `{TYPE}` with one of the following: `pm2` (for Node.js projects), `laravel`, or `wordpress`.
+
+    For example:
+
+    ```bash
+    ln -s deploy-commands/pm2-deploy ./commands
+    ```
+
+4. Configure your deployment by adding configuration files. See the [Setup Config Files](#setup-config-files) section for details on configuring your deployment.
+
+5. Utilize Github Actions via Workflows to automate deployments. See the [Automated Deployments via Github Actions](#automated-deployments-via-github-actions) section for details on configuring your deployment.
+
+[↑ Top](#contents)
 
 ---
 
 ## Usage
 
-Our deployment system is designed around two main actions: `releasing` and `deploying`.
+This deployment system revolves around two main actions: "releasing" and "deploying."
 
-**Releasing**: This refers to the action where the system clones the desired repository into `releases` folder and/or checks out a specified branch or tag. Post-checkout, it manages build tasks, such as executing `npm install && npm run build` or `composer install`.
+Quick Example:
+```bash
+cd /var/www/yoursite.com/commands
 
-**Deploying**: This action replaces the current live directory with a symbolic link `current` pointing to the selected release. It might also run a custom test-command and upon success a reload-command associated services if required - eg. `sudo nginx -t` and `sudo service nginx reload`, respectively.
+./app-release -v=1.0.1 -t=true -b=false -a=true
+./app-deploy -v=1.0.1 -s=my-app-server
+```
 
-#### Building a Release - Prompted Vs. Unprompted
+**Releasing:** This action involves cloning the desired repository into a "releases" folder and checking out a specified branch or tag. After the checkout, it manages build tasks, such as running `npm install && npm run build` or `composer install` depending on your application.
+
+Read more in the [Building a release](#building-a-release) section.
+
+**Deploying:** This action replaces the current live directory with a symbolic link called "current," pointing to the selected release. It can also run a custom test command, and upon success, a reload command for associated services if needed (e.g., `sudo nginx -t` and `sudo service nginx reload`, respectively).
+
+Read more in the [Deploy a release](#deploy-a-release) section.
+
+You can initiate a release in two ways: prompted or unprompted. For automation purposes, you need to use the unprompted method. Similarly, deployment commands are always unprompted.
+
+[↑ Top](#contents)
+
+---
+
+### Building a Release
 
 You can initiate `app-release` in two different ways:
 
@@ -66,7 +149,7 @@ You can initiate `app-release` in two different ways:
     | -b | If you want to specify a branch to checkout, provide its name; else, use false.  |
     | -a | Exclusive to `laravel-deploy`. Determines if the assets directory should be built during release using `./build-assets`. |
 
-#### Deploy ANY Release - Unprompted only
+#### Deploy a Release
 
 For deployment, you'll need to specify a release folder. This is handy for pushing new versions as well as reverting to prior ones. Deployment commands are always unprompted:
 
@@ -81,13 +164,13 @@ For deployment, you'll need to specify a release folder. This is handy for pushi
 
 **Note:** During the deployment, the system will run the `test_command`. If tests pass, the `reload_command` will be executed, provided these commands are present in your commands directory.
 
-[↑ Top](#install)
+[↑ Top](#contents)
 
 ---
 
 ## Setup Config Files
 
-To help automate deployment processes, you can use these configuration files to avoid some repetitive prompts, eg. the app's repo to build from, or the pm2 server name
+To help automate deployment processes, you can use these configuration files to avoid some repetitive prompts, eg. the app's repo to build from, or the pm2 server name.
 
 These are ignored by git and live inside the commands folder you created above.
 
@@ -115,7 +198,7 @@ Place your config files into the commands folder directly, like this:
 | npm_command | `./npm_command.sh`,<br>`nvm use && npm install && npm run production` | Optional - default is `npm install && npm run build`. |
 | npm_command.sh | `npm install && npm run build`,<br>`nvm use && npm install && npm run production` | Optional - copy from example for ideas. |
 
-[↑ Top](#install)
+[↑ Top](#contents)
 
 ---
 
@@ -166,7 +249,7 @@ Ensure that the "NAME OF YOUR SERVER" matches the appservername config or the `-
 
 From that folder, run your `pm2 start`
 
-[↑ Top](#install)
+[↑ Top](#contents)
 
 ---
 
@@ -216,7 +299,7 @@ You might also have an ecosystem.config.js file here for pm2 to run horizon
 }
 ```
 
-[↑ Top](#install)
+[↑ Top](#contents)
 
 ---
 
@@ -243,82 +326,222 @@ Wordpress deployments uses **a releases folder** such that the directory structu
 ---------- dev           # release on branch
 ```
 
-[↑ Top](#install)
+[↑ Top](#contents)
 
 ---
 
-## Automated Deployments via Github Workflow
+## Automated Deployments via Github Actions
 
 Follow these steps to set up a deployment process via github workflows for your project:
 
-1. **Integrate Workflow File & Setup Key Pairs**
+- [Step 1: Copy Workflows & Setup in Github (or AWS)](#step-1-copy-workflows-and-setup-in-github)
+  - [OPTION A: SSH Workflow](#option-a-ssh-workflow-integrate-workflow-file--setup-key-pairs) 
+  - [OPTION B: AWS SSM Workflow](#option-b-aws-ssm-workflows-integrate-workflows--setup-iam-github-secrets-and-github-variables)
 
-    Copy the `deploy-workflow.yml` into your site's repository under the `.github/workflows/` directory:
+- [Step 2: Create a Deploy Script on Server](#step-2-create-a-deploy-script-on-server)
 
-    ```bash
-    cp deploy-workflow.yml /path/to/your/site/repo/.github/workflows/deploy.yml
-    ```
+Workflows depend on a `deploy.sh` script and `deploy.config.json` file that will being using the `app-release` and `app-deploy` scripts. Be sure to follow that pattern for it to work.
 
-    Edit the branches you want to trigger the workflow on. By default, it is set to `main`, `dev` and release publishes.
-
-    Ensure you save secrets to your repository for the following:
-
-    - SERVER_ADDRESS
-    - SERVER_SSH_KEY (private key)
-    - DEPLOY_USER
-    - SERVER_KEYSCAN (get from local, trusted machine that has connected before - eg. run `ssh-keyscan your.server.ip` and paste into secret)
-
-    And store the public key of your server in the `authorized_keys` file of the deployment user. eg. /home/ubuntu/.ssh/authorized_keys
-
-    _If you have this repo on different servers, you'd want to add to this workflow file to do some routing - eg. "if the branch is main or a tag release, deploy to production server, else deploy to dev server" and that would mean setting up more secrets - eg. `PROD_SERVER_ADDRESS`_
-
-2. **Create a Deploy Script on Server**
-
-    Copy the `deploy.sh` script to the home directory of the deployment user on your server:
-
-    ```bash
-    scp deploy.sh user@your.server.ip:~/
-    ```
-
-3. **Create Configuration File**
-
-    On the server, in the home directory of the deployment user, create a configuration file named `deploy.config.json`. It should match the following structure:
-
-    ```json
-    {
-      "<user>/<repo-name>": {
-        "<env>": {
-          "commands": "/var/www/<domain>/commands",
-          "releases": "/var/www/<domain>/releases"
-        }
-      }
-    }
-    ```
-
-    _If your server has only 1 env setting, it will not do any branch/tag related checks to decide which `/var/www/<folder>` to deploy to. This is useful if you handled that in the workflow file instead, eg the environments are spread across different servers._
-
-- `<env>` can have values like `prod` which maps to domain structures like `www.site.com` or `site.com`.
-- Any subdomain, like dev.site.com, would have an `<env>` value of `dev`.
-
-The structure relies on the `deploy-commands` file structure convention:
+This is the `deploy-commands` file structure convention:
 
 - `/var/www/<domain>/deploy-commands`
 - `/var/www/<domain>/releases`
 - `/var/www/<domain>/current` (this should be a symlink pointing to a specific version in the releases directory)
 
-### Generate Config File Automatically
+[↑ Top](#contents)
 
-If you'd prefer to automate the creation of the `deploy.config.json` file, you can fetch our pre-made script:
+---
+
+### Step 1: Copy Workflows and Setup in Github
+ 
+#### OPTION A)
+
+**SSH Workflow: Integrate Workflow File & Setup Key Pairs**
+
+With this option, you will be using `ssh` (port 22) to connect to your server. It's very easy, but it may not be the most secure. If you are using aws and ssm, you may want to use the next option instead.
+
+Copy the `deploy-workflow.yml` into your site's repository under the `.github/workflows/` directory:
 
 ```bash
-curl -o generate-deploy-config.sh https://raw.githubusercontent.com/amurrell/SimpleDocker/dev/scripts/templates/090-deploy-config-RAOU.sh 
-chmod +x generate-deploy-config.sh
+cp deploy-workflow.yml /path/to/your/site/repo/.github/workflows/deploy.yml
+```
 
-# while at it, copy in the deploy.sh to your server too
-curl -O https://raw.githubusercontent.com/amurrell/deploy-commands/main/deploy.sh
+Edit the branches you want to trigger the workflow on. By default, it is set to `main`, `dev` and release publishes.
+
+Ensure you save secrets to your repository for the following:
+
+- SERVER_ADDRESS
+- SERVER_SSH_KEY (private key)
+- DEPLOY_USER
+- SERVER_KEYSCAN (get from local, trusted machine that has connected before - eg. run `ssh-keyscan your.server.ip` and paste into secret)
+
+And store the public key of your server in the `authorized_keys` file of the deployment user. eg. /home/ubuntu/.ssh/authorized_keys
+
+If you use this repo on different servers - eg. dev server vs prod server, you may want to setup a different workflow file for each and prefix your secrets/vars with `DEV_` or `PROD_` respectively (or utilize github environment configurations).
+
+> [!IMPORTANT] 
+> Be sure to review the events that will trigger the workflow. For example, you may want to update the `deploy-workflow.yml` version to work _either_ `main` branch push OR tag `release` publish as it would be redudant to have both trigger the deployment.
+
+[↑ Steps](#automated-deployments-via-github-actions) | 
+[↑ Top](#contents)
+
+---
+
+#### OPTION B)
+
+**AWS SSM Workflows: Integrate workflows & Setup IAM, Github Secrets and Github Variables**
+
+You may not have SSH ports open for security reasons and may be using AWS with SSM - in which case, you can use the `deploy-workflow-aws-ssm-<env:prod|dev>.yml` workflow files instead. Copy them into your site's repository under the `.github/workflows/` directory.
+
+> [!IMPORTANT] 
+> Be sure to review the events that will trigger the workflow. For example, you may want to update the `deploy-workflow-aws-ssm-prod.yml` version to work _either_ `main` branch push OR tag `release` publish as it would be redudant to have both trigger the deployment.
+
+AWS will requite some steps too:
+
+1. create an IAM user 
+2. get its access key and secret key
+3. attach an inline policy like the following (replace `<ACCOUNT_ID>` and `<INSTANCE_ID>` with your own):
+
+  ```json
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "VisualEditor0",
+        "Effect": "Allow",
+        "Action": [
+          "ec2:DescribeInstances",
+          "ssm:GetConnectionStatus",
+          "ssm:DescribeInstanceProperties",
+          "ssm:GetCommandInvocation",
+          "ssm:ListCommands",
+          "ssm:ListCommandInvocations"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "VisualEditor1",
+        "Effect": "Allow",
+        "Action": [
+          "ssm:SendCommand"
+        ],
+        "Resource": [
+          "arn:aws:ec2:*:<ACCOUNT_ID>:instance/<INSTANCE_ID>",
+          "arn:aws:ssm:*::document/*"
+        ]
+      }
+    ]
+  }
+  ```
+
+You will need to ensure that your site's repository is setup with both **secret** and **variable** configurations setup in github that are mentioned in these workflow files as:
+
+- `${{ secrets.<secret-name> }}`
+- `${{ vars.<variable-name> }}`
+
+It is recommended that you build and test these workflows on your local machine - which thankfully 🙏 you can via [act](https://github.com/nektos/act) with docker. 
+
+Keep in mind that these will attempt to trigger remote deploys, so ideally test the workflows on non-production servers eg. dev workflow.
+
+```bash
+cd <your-repo>
+act 
+  --secret-file github-secrets \ 
+  --var-file github-vars \ 
+  -e event.json \
+  -W '.github/workflows/deploy-dev.yml'
+```
+
+Place these files into your repo (and probably them add to gitignore):
+
+**github-secrets**
+
+```bash
+DEV_AWS_ACCESS_KEY_ID=xxx
+DEV_AWS_SECRET_ACCESS_KEY=xxx
+PROD_AWS_ACCESS_KEY_ID=xxx
+PROD_AWS_SECRET_ACCESS_KEY=xxx
+```
+
+**github-vars**
+
+```bash
+DEV_AWS_REGION=us-east-2 # for example
+DEV_INSTANCE_USER="ubuntu" # for example
+DEV_INSTANCE_ID="i-xxx"
+PROD_AWS_REGION=us-east-2 # for example
+PROD_INSTANCE_USER="ubuntu" # for example
+PROD_INSTANCE_ID="i-xxx"
+```
+
+**event-json**
+
+```json
+{
+    "ref": "refs/heads/dev"
+}
+```
+
+These **github-secrets** and **github-vars** correlate to the same secrets and variables you will need to setup in the github repository settings.
+
+[↑ Steps](#automated-deployments-via-github-actions) | 
+[↑ Top](#contents)
+
+---
+
+### Step 2: Create a Deploy Script on Server
+
+We need `deploy.sh` and `deploy.config.json` on your server.
+
+**deploy.sh** is in this repo - get it on your server
+
+```bash
+### ssh connection from local machine
+scp deploy.sh <deploy-user>@<your-server-ip>:~/
+
+## from inside your server (eg. via interative ssm)
+curl -0 https://raw.githubusercontent.com/amurrell/deploy-commands/main/deploy.sh
 chmod +x deploy.sh
+```
+
+**deploy.config.json**
+
+Create it manually and put on the server at deploy user's home directory:
+
+```json
+{
+  "<user>/<repo-name>": {
+    "<env>": {
+      "commands": "/var/www/<domain>/commands",
+      "releases": "/var/www/<domain>/releases"
+    }
+  }
+}
+```
+
+Or, to generate this file, use the `generate-deploy-config.sh` provisioning script template from [SimpleDocker](https://github.com/amurrell/SimpleDocker), another awesome amurrell repo:
+
+```bash
+### ssh connection from local machine
+curl -o generate-deploy-config.sh https://raw.githubusercontent.com/amurrell/SimpleDocker/dev/scripts/templates/090-deploy-config-RAOU.sh
+scp generate-deploy-config.sh <deploy-user>@<your-server-ip>:~/
+chmod +x generate-deploy-config.sh
+./generate-deploy-config.sh
+
+### from inside your server (eg. via interative ssm)
+cd ~ 
+curl -o generate-deploy-config.sh https://raw.githubusercontent.com/amurrell/SimpleDocker/dev/scripts/templates/090-deploy-config-RAOU.sh
+chmod +x generate-deploy-config.sh
+./generate-deploy-config.sh
 ```
 
 This script will inspect the `/var/www/` directory on your server, identify domain folders that contain `deploy-commands` repo, and generate the `deploy.config.json` file accordingly.
 
-[↑ Top](#install)
+#### Notes on the `deploy.config.json` file:
+
+`<env>` can have values like `prod` which maps to domain structures like `www.site.com` or `site.com`. Any subdomain, like dev.site.com, would have an `<env>` value of `dev`.
+
+If your server has only 1 env setting, it will not do any branch/tag related checks to decide which `/var/www/<folder>` to deploy to. This is useful if you handled that in the workflow file instead, eg. the environments are spread across different servers.
+
+[↑ Steps](#automated-deployments-via-github-actions) | 
+[↑ Top](#contents)
