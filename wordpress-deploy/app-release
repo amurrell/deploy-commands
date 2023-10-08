@@ -81,11 +81,12 @@ else
     fi
 fi
 
-# where the site is
+# go 1 level up, out of commands and into the main folder where the site is
+cd ../
 APP_PATH=$(pwd)
 
-# Get one level up, out of commands and into releases
-cd ../releases
+# Get into the releases folder.
+cd releases
 RELEASES_FOLDER=$(pwd)
 
 # PROMPT Release Name
@@ -154,6 +155,10 @@ fi
 
 # Make symbolic link for uploads directory
 if [ -d "$APP_PATH/uploads" ]; then
+    # if the release has an uploads folder, delete it first
+    if [ -d "$RELEASE_PATH/html/wp-content/uploads" ]; then
+        rm -rf "$RELEASE_PATH/html/wp-content/uploads"
+    fi
     ln -sfn "$APP_PATH/uploads" "$RELEASE_PATH/html/wp-content/uploads"
 fi
 
