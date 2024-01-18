@@ -94,17 +94,19 @@ COMMANDS_PATH=$(echo "$CONFIG" | node -e "let input = ''; process.stdin.on('data
 # Set version and type (tag or branch)
 if [[ -n "$TAG" ]]; then
     VERSION=$TAG
-    TYPE=true
+    IS_TAG=true
+    # if it's a tag we want to set BRANCH to false
+    BRANCH=false
 else
     VERSION="$BRANCH-$(date +%Y%m%d%H%M%S)"
-    TYPE=false
+    IS_TAG=false
 fi
 
 # Navigate to commands path and execute deployment scripts
 cd $COMMANDS_PATH
 
 # If release goes well, then deploy.
-if ./app-release -v=$VERSION -t=$TYPE -b=$BRANCH; then
+if ./app-release -v=$VERSION -t=$IS_TAG -b=$BRANCH; then
     # If deploy goes well, then delete old releases (and not this one)
     if ./app-deploy -v=$VERSION; then
         # Go up one layer to "domain"
