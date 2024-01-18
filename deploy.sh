@@ -125,5 +125,11 @@ if ./app-release -v=$VERSION -t=$IS_TAG -b=$BRANCH; then
         for FOLDER in $(ls -tp | grep '/$' | grep -v "^$(basename $CURRENT_RELEASE)/" | tail -n +2); do
             rm -rf "$FOLDER"
         done
+    else
+        echo "❌ app-deploy failed. Please check the logs."
+        exit 1
     fi
+else
+    echo "❌ app-release failed. Please check the logs."
+    exit 1
 fi
