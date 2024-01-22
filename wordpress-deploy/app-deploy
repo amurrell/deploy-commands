@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 DEPLOYING_FROM=$(pwd)
 
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")

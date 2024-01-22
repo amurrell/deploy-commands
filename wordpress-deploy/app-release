@@ -3,6 +3,10 @@
 # Copy this folder as "commands" and save in same directory as "current" release symlink.
 # Put all these config files directly into the commands folder.
 
+# error as soon as a command fails
+set -e
+
+# export all variables
 set -a
 
 RELEASING_FROM=$(pwd)
@@ -43,6 +47,13 @@ else
     ASSETSFOLDER_LOCATION=''
 fi
 
+# Figure out the npm command to run
+if [ -f npm_command ]; then
+    NPM_COMMAND=$(<npm_command)
+else
+    NPM_COMMAND='npm install && npm run build'
+fi
+
 H=$(sed -e 's#.*\-h=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 R=$(sed -e 's#.*\-r=\([^[:space:]]*\?\).*#\1#' <<< "$*")
 V=$(sed -e 's#.*\-v=\([^[:space:]]*\?\).*#\1#' <<< "$*")
@@ -70,10 +81,11 @@ else
     fi
 fi
 
-# where the site is
+# go 1 level up, out of commands and into the main folder where the site is
+cd ../
 APP_PATH=$(pwd)
 
-# Get one level up, out of commands
+# Get into the releases folder.
 cd releases
 RELEASES_FOLDER=$(pwd)
 
@@ -122,12 +134,31 @@ if [ "$B" == "$*" ]; then
     fi
 elif [ "$B" != "false" ]; then
     git fetch origin
-    echo "$B"
-    git checkout -b "$B" "origin/$B"
+
+    # Check if git fetch was successful
+    if [ $? -eq 0 ]; then
+        echo "$B"
+
+        # Get current branch
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+        # Check if the current branch is different from $B
+        if [ "$current_branch" != "$B" ]; then
+            git checkout -b "$B" "origin/$B"
+        else
+            echo "Already on branch $B. Skipping checkout."
+        fi
+    else
+        echo "Failed to fetch from origin. Aborting."
+    fi
 fi
 
 # Make symbolic link for uploads directory
 if [ -d "$APP_PATH/uploads" ]; then
+    # if the release has an uploads folder, delete it first
+    if [ -d "$RELEASE_PATH/html/wp-content/uploads" ]; then
+        rm -rf "$RELEASE_PATH/html/wp-content/uploads"
+    fi
     ln -sfn "$APP_PATH/uploads" "$RELEASE_PATH/html/wp-content/uploads"
 fi
 
@@ -137,10 +168,9 @@ mkdir -p "$RELEASE_PATH/$LOGSFOLDER_LOCATION"
 ## Build Assets
 # If ASSETSFOLDER_LOCATION and NPM_COMMAND are not empty
 if [ "$ASSETSFOLDER_LOCATION" != "" ] && [ "$NPM_COMMAND" != "" ]; then
-    cd $ASSETS_PATH
     printf "=== The Assets Path: $ASSETS_PATH\n"
-    # Remove node_modules folder
-    rm -rf node_modules
+    cd $RELEASING_FROM
+    set +a
     bash -c -i "$NPM_COMMAND"
 fi
 
@@ -149,15 +179,3 @@ chown $OWNER_USER:$OWNER_GROUP "$RELEASE_PATH" -R
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
-
-set +a
-
-# Build production wordpress
-if [ -f npm_command ]; then
-    NPM_COMMAND=$(<npm_command)
-else
-    NPM_COMMAND='npm install && npm run build'
-fi
-
-# eg nvm use, npm install, build (needs interactive (-i) bc nvm npm etc are bash profile based)
-bash -c -i "$NPM_COMMAND"

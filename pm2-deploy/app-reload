@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Put server name in a relative file appservername
 if [ -f appservername ]; then
     SERVER=$(<appservername)

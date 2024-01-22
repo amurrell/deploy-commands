@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# error as soon as a command fails
+set -e
+
+# export all variables
 set -a
 
 RELEASING_FROM=$(pwd)
@@ -123,8 +127,23 @@ if [ "$B" == "$*" ]; then
     fi
 elif [ "$B" != "false" ]; then
     git fetch origin
-    echo "$B"
-    git checkout -b "$B" "origin/$B"
+
+    # Check if git fetch was successful
+    if [ $? -eq 0 ]; then
+        echo "$B"
+
+        # Get current branch
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+        # Check if the current branch is different from $B
+        if [ "$current_branch" != "$B" ]; then
+            git checkout -b "$B" "origin/$B"
+        else
+            echo "Already on branch $B. Skipping checkout."
+        fi
+    else
+        echo "Failed to fetch from origin. Aborting."
+    fi
 fi
 
 REPO_ROOT=$(pwd)

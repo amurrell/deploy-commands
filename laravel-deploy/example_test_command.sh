@@ -36,7 +36,7 @@ cd ../
 # if there's an ecosystem.config.js file and pm2 is an available command, then run pm2 restart all
 if [ -f "ecosystem.config.js" ] && [ -x "$(command -v pm2)" ]; then
     printf "============ ecosystem.config.js exists, so running pm2 restart all\n"
-    pm2 restart all
+    pm2 reload all
 fi
 
 cd $TESTING_FROM
