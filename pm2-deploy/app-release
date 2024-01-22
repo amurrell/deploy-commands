@@ -148,11 +148,22 @@ fi
 
 REPO_ROOT=$(pwd)
 
-# Add Logs Folder
+# Add logs folder
 sudo mkdir -p "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
-sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
+# If the logs location has a /, loop through and chown each one
+# Prevents issues with paths like Parent/Logs, `chown` will not change the permissions of Parent
+if [[ $APPLOGSFOLDER_LOCATION == *\/* ]]; then
+    IFS='/' read -ra ADDR <<< "$APPLOGSFOLDER_LOCATION"
+    for i in "${ADDR[@]}"; do
+        # join the path, but there should be no leading slash if it's the first one
+        CUR_LOG_PATH="${CUR_LOG_PATH:+$CUR_LOG_PATH/}$i"
+        sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$CUR_LOG_PATH"
+    done
+else
+    sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$APPLOGSFOLDER_LOCATION"
+fi
 
 # Go into the repo's appfolder, where npm is?
 cd $REPO_ROOT/$APPFOLDER

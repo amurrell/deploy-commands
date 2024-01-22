@@ -199,7 +199,18 @@ sudo chmod 777 "$CURRENT/bootstrap" -R
 sudo mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
-sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+# If the logs location has a /, loop through and chown each one
+# Prevents issues with paths like Parent/Logs, `chown` will not change the permissions of Parent
+if [[ $LARAVELLOGSFOLDER_LOCATION == *\/* ]]; then
+    IFS='/' read -ra ADDR <<< "$LARAVELLOGSFOLDER_LOCATION"
+    for i in "${ADDR[@]}"; do
+        # join the path, but there should be no leading slash if it's the first one
+        CUR_LOG_PATH="${CUR_LOG_PATH:+$CUR_LOG_PATH/}$i"
+        sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$CUR_LOG_PATH"
+    done
+else
+    sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+fi
 
 ## Change back to the commands directory
 cd $RELEASING_FROM
