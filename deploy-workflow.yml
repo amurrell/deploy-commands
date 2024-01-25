@@ -17,6 +17,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    # Create dev deployment on GitHub via bobheadxi/deployments@v1
+    - name: Start Deployment
+      id: deployment
+      uses: bobheadxi/deployments@v1
+      with:
+        step: start
+        token: ${{ secrets.GITHUB_TOKEN }}
+        # Both environments need to be created manually in the repo settings on GitHub
+        # Go to Repo Settings >  Environment -> New Environment
+
+        # Conditionally set env based on push or release event
+        # Set your own logic here based on your git flow
+        env: ${{ github.event_name == 'push' && 'development' || 'production' }}
+
     - name: Setup knownhosts
       env:
         SERVER_KEYSCAN: ${{ secrets.SERVER_KEYSCAN }}
@@ -44,3 +58,13 @@ jobs:
         fi
 
         rm -f private_key
+
+    - name: Update deployment status
+      uses: bobheadxi/deployments@v1
+      if: always()
+      with:
+        step: finish
+        token: ${{ secrets.GITHUB_TOKEN }}
+        status: ${{ job.status }}
+        env: ${{ steps.deployment.outputs.env }}
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}

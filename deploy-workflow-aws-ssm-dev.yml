@@ -41,6 +41,17 @@ jobs:
         aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ vars.DEV_AWS_REGION }}
 
+    # Create dev deployment on GitHub via bobheadxi/deployments@v1
+    - name: Start Deployment
+      id: deployment
+      uses: bobheadxi/deployments@v1
+      with:
+        step: start
+        token: ${{ secrets.GITHUB_TOKEN }}
+        # This needs to be created manually in the repo settings on GitHub
+        # Go to Repo Settings >  Environment -> New Environment
+        env: development
+
     # Send command via AWS SSM
     - name: Execute Command on Instance
       id: ssm
@@ -114,3 +125,13 @@ jobs:
             echo "❌ Deploy Failed"
             exit 1
         fi
+
+    - name: Update deployment status
+      uses: bobheadxi/deployments@v1
+      if: always()
+      with:
+        step: finish
+        token: ${{ secrets.GITHUB_TOKEN }}
+        status: ${{ job.status }}
+        env: ${{ steps.deployment.outputs.env }}
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}

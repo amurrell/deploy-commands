@@ -340,6 +340,8 @@ Follow these steps to set up a deployment process via github workflows for your 
 
 - [Step 2: Create a Deploy Script on Server](#step-2-create-a-deploy-script-on-server)
 
+- [Step 3 (Optional): Setup Github Environments for GitHub Deployments](#step-3-optional-setup-github-environments-for-github-deployments)
+
 Workflows depend on a `deploy.sh` script and `deploy.config.json` file that will being using the `app-release` and `app-deploy` scripts. Be sure to follow that pattern for it to work.
 
 This is the `deploy-commands` file structure convention:
@@ -550,6 +552,35 @@ This script will inspect the `/var/www/` directory on your server, identify doma
 `<env>` can have values like `prod` which maps to domain structures like `www.site.com` or `site.com`. Any subdomain, like dev.site.com, would have an `<env>` value of `dev`.
 
 If your server has only 1 env setting, it will not do any branch/tag related checks to decide which `/var/www/<folder>` to deploy to. This is useful if you handled that in the workflow file instead, eg. the environments are spread across different servers.
+
+[↑ Steps](#automated-deployments-via-github-actions) |
+[↑ Top](#contents)
+
+---
+
+### Step 3 (Optional): Setup Github Environments for GitHub Deployments
+> [!NOTE]
+> If you don't want to track GitHub deployments, you can remove the `deployments` portions from the workflow files in your repo (they use the `bobheadxi/deployments` action) and skip the rest of this section.
+
+GitHub deployments are a great way to track the status of your deployments and to see which commit is currently deployed to your server.
+
+---
+
+<details>
+  <summary>🖼 How GitHub Deployments appear once integrated</summary>
+
+  They will be shown on relevant PRs like so:
+  <img width="600" alt="Screenshot of PR showing a deployment in progress for the branch " src="./docs/images/deployment-pr.png">
+
+  And on the repo Overview > Deployments you can see the status of all deployments:
+  <img width="600" alt="Screenshot showing a list of the active deployment for the development environment and the past deployments" src="./docs/images/deployment-overview.png">
+</details>
+
+---
+
+The workflow files expect you to have two environments set up in your repository: `development` and `production`. You can set these up by going to your repository's settings and clicking on the "Environments" tab.
+
+You can also change the names of these environments in the workflow files if you prefer to use different names.
 
 [↑ Steps](#automated-deployments-via-github-actions) |
 [↑ Top](#contents)
