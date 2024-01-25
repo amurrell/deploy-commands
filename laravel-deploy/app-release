@@ -196,7 +196,7 @@ sudo chmod 777 "$CURRENT/storage" -R
 sudo chmod 777 "$CURRENT/bootstrap" -R
 
 ## Make Logs Directory
-sudo mkdir -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
+sudo mkdir -m 775 -p "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
 
 ## Change ownership of the logs folder
 # If the logs location has a /, loop through and chown each one
@@ -207,6 +207,7 @@ if [[ $LARAVELLOGSFOLDER_LOCATION == *\/* ]]; then
         # join the path, but there should be no leading slash if it's the first one
         CUR_LOG_PATH="${CUR_LOG_PATH:+$CUR_LOG_PATH/}$i"
         sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$CUR_LOG_PATH"
+        sudo chmod 775 "$REPO_ROOT/$CUR_LOG_PATH"
     done
 else
     sudo chown $OWNER_USER:$OWNER_GROUP "$REPO_ROOT/$LARAVELLOGSFOLDER_LOCATION"
