@@ -570,10 +570,10 @@ GitHub deployments are a great way to track the status of your deployments and t
   <summary>🖼 How GitHub Deployments appear once integrated</summary>
 
   They will be shown on relevant PRs like so:
-  <img width="600" alt="Screenshot of PR showing a deployment in progress for the branch " src="./docs/images/deployment-pr.png">
+  <img width="600" alt="Screenshot of PR showing a deployment in progress for the branch " src="docs/images/deployment-pr.png">
 
   And on the repo Overview > Deployments you can see the status of all deployments:
-  <img width="600" alt="Screenshot showing a list of the active deployment for the development environment and the past deployments" src="./docs/images/deployment-overview.png">
+  <img width="600" alt="Screenshot showing a list of the active deployment for the development environment and the past deployments" src="docs/images/deployment-overview.png">
 </details>
 
 ---
