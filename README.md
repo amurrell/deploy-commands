@@ -58,6 +58,8 @@ deploy.sh --repo user/project --tag 1.0.1
     - [Option A: SSH Workflow](#option-a) | [Option B: AWS SSM Workflows](#option-b)
 
   → [Step 2: Create a Deploy Script on Server](#step-2-create-a-deploy-script-on-server)
+  
+  → [Step 3: (optional) Setup Github environments for Github Deployments](#step-3-optional-setup-github-environments-for-github-deployments)
 
 ---
 
