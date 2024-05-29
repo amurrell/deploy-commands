@@ -401,7 +401,12 @@ Edit the branches you want to trigger the workflow on. By default, it is set to 
 
 **AWS SSM Workflows: Integrate workflows & Setup IAM, GitHub Secrets and GitHub Variables**
 
-You may not have SSH ports open for security reasons and may be using AWS with SSM - in which case, you can use the `deploy-workflow-aws-ssm-<env:prod|dev>.yml` workflow files instead. Copy them into your site's repository under the `.github/workflows/` directory.
+You may not have SSH ports open for security reasons and may be using AWS with SSM - in which case, you can use the following workflow files instead:
+- `deploy-workflow-aws-ssm-dev.yml`
+- `deploy-workflow-aws-ssm-prod.yml`
+- `deploy-aws-ssm.yml` (this is a shared file that both the above workflows use)
+
+Copy them into your site's repository under the `.github/workflows/` directory.
 
 > [!IMPORTANT]
 > Be sure to review the events that will trigger the workflow. For example, you may want to update the `deploy-workflow-aws-ssm-prod.yml` version to work _either_ `main` branch push OR tag `release` publish as it would be redudant to have both trigger the deployment.

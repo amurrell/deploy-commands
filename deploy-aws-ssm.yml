@@ -1,0 +1,160 @@
+name: Deploy via AWS SSM
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        type: string
+        description: 'AWS Region'
+        required: true
+      INSTANCE_ID:
+        type: string
+        description: 'EC2 Instance ID'
+        required: true
+      INSTANCE_USER:
+        type: string
+        description: 'EC2 Instance User'
+        required: true
+      # Note:
+      # This needs to be created manually in the repo settings on GitHub
+      # Go to Repo Settings >  Environment -> New Environment
+      GITHUB_DEPLOYMENT_ENV_NAME:
+        type: string
+        description: 'GitHub Deployment Environment Name'
+        required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS Access Key ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS Secret Access Key'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Check if AWS CLI is installed
+      run: |
+        if command -v aws &> /dev/null
+        then
+          echo "AWS CLI is already installed"
+          exit 0
+        else
+          echo "AWS CLI is not installed"
+          exit 1
+        fi
+      id: check-aws-cli
+
+    - name: Install AWS CLI
+      if: steps.check-aws-cli.outcome == 'failure'
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+        sudo dpkg -i session-manager-plugin.deb
+
+    # Setup AWS CLI
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.AWS_REGION }}
+
+    # Create dev deployment on GitHub via bobheadxi/deployments@v1
+    - name: Start Deployment
+      id: deployment
+      uses: bobheadxi/deployments@v1
+      with:
+        step: start
+        token: ${{ secrets.GITHUB_TOKEN }}
+        env: ${{ inputs.GITHUB_DEPLOYMENT_ENV_NAME }}
+
+    # Send command via AWS SSM
+    - name: Execute Command on Instance
+      id: ssm
+      run: |
+        REF_NAME=$(basename ${{ github.ref }})
+
+        if [ "${{ github.event_name }}" == "push" ]; then
+            COMMAND="./deploy.sh --repo ${{ github.repository }} --branch $REF_NAME"
+        elif [ "${{ github.event_name }}" == "release" ]; then
+            COMMAND="./deploy.sh --repo ${{ github.repository }} --tag $REF_NAME"
+        fi
+
+        # wrap COMMAND so that ubuntu can run it. We are root
+        RUN_AS_COMMAND="sudo -u ${{ inputs.INSTANCE_USER}} -i bash -c \"$COMMAND\""
+        # escape double quotes
+        RUN_AS_COMMAND=${RUN_AS_COMMAND//\"/\\\"}
+        echo "Executing command: $RUN_AS_COMMAND"
+
+        command_id=$(aws ssm send-command \
+            --document-name 'AWS-RunShellScript' \
+            --parameters "{\"commands\": [\"$RUN_AS_COMMAND\"]}" \
+            --instance-ids "${{ inputs.INSTANCE_ID }}" \
+            --output text \
+            --query Command.CommandId)
+
+        # Wait for command to finish - but ignore errors
+        set +e
+        aws ssm wait command-executed \
+            --command-id "${command_id}" \
+            --instance-id "${{ inputs.INSTANCE_ID }}"
+        # return to normal error handling
+        set -e
+
+        while [ $(aws ssm list-commands --command-id $command_id --query "Commands[].Status" --output text) == "InProgress" ]; do
+            sleep 5
+        done
+
+        # Check exit code
+        exit_code=$(aws ssm list-command-invocations \
+            --command-id "${command_id}" \
+            --instance-id "${{ inputs.INSTANCE_ID }}" \
+            --query "CommandInvocations[].StatusDetails" \
+            --output text)
+
+        # Get standard output
+        echo "📝 AWS Command ID [${command_id}] - Standard Output:"
+        aws ssm get-command-invocation \
+            --command-id "${command_id}" \
+            --instance-id "${{ inputs.INSTANCE_ID }}" \
+            --query "StandardOutputContent" \
+            --output text \
+            --no-cli-pager
+
+        # Get standard error
+        echo "📝 AWS Command ID [${command_id}] - Standard Error:"
+        # Get error output
+        aws ssm get-command-invocation \
+            --command-id "${command_id}" \
+            --instance-id "${{ inputs.INSTANCE_ID }}" \
+            --query "StandardErrorContent" \
+            --output text \
+            --no-cli-pager
+
+        # Printf the command link to be helpful
+        echo "👀 AWS Console - Output command link: https://${{ inputs.AWS_REGION }}.console.aws.amazon.com/systems-manager/run-command/${command_id}/${{ inputs.INSTANCE_ID }}"
+
+        # Now report on exit code and exit properly.
+        if [ "$exit_code" = "Success" ]; then
+            echo "✅ Deploy Succeeded"
+        else
+            echo "❌ Deploy Failed"
+            exit 1
+        fi
+
+    - name: Update deployment status
+      uses: bobheadxi/deployments@v1
+      if: always()
+      with:
+        step: finish
+        token: ${{ secrets.GITHUB_TOKEN }}
+        status: ${{ job.status }}
+        env: ${{ steps.deployment.outputs.env }}
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}
