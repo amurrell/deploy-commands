@@ -24,7 +24,7 @@ cd /var/www/yoursite.com/commands
 ./app-deploy -v=1.0.1 -s=my-app-server
 ```
 
-#### Preview: Github Action calls `deploy.sh` script to run the above sequence according to git event (eg. tag release `published` vs branch `push`)
+#### Preview: GitHub Action calls `deploy.sh` script to run the above sequence according to git event (eg. tag release `published` vs branch `push`)
 
 ```bash
 cd ~/
@@ -41,7 +41,7 @@ deploy.sh --repo user/project --tag 1.0.1
 - The `app-release` and `app-deploy` scripts look for sibling custom config files (eg. apprepo, appservername, applogsfolder, env files, etc) to minimize the need for lots of switches and to run the processes.
 - Running custom build, test, reload processes is possible by writing your own scripts: `npm-command.sh` to be called during `app-release`,`test-command.sh` and subsequent `reload-command.sh` to enact if successful test-command in `app-deploy`. Working examples are provided!
 - For simplistic approach, you can use `app-release` interactively and manually execute builds and releases while in your server.
-- Optionally, for automatic deployments via Github Actions - Copy from an (SSH, or AWS-SSM) appropriate workflow template from deploy-commands to your project `.github/workflows/deploy.yml` and setup secrets and variables in github repo settings
+- Optionally, for automatic deployments via GitHub Actions - Copy from an (SSH, or AWS-SSM) appropriate workflow template from deploy-commands to your project `.github/workflows/deploy.yml` and setup secrets and variables in github repo settings
 - `deploy.sh` uses [`deploy.config.json`](#step-2-create-a-deploy-script-on-server) to determine which `/var/www/site.com/commands` to use for the deployment.
 
 ---
@@ -51,9 +51,9 @@ deploy.sh --repo user/project --tag 1.0.1
 - [Installation](#installation)
 - [Usage](#usage) - [Building](#building-a-release---prompted-vs-unprompted) | [Deploying](#deploy-any-release---unprompted-only)
 - [Setup Config Files](#setup-config-files) - [General](#generic-deploy-commands-config) | [PM2](#pm2-deploy-commands-config) | [Laravel](#laravel-deploy-commands-config) | [Wordpress/PHP](#wordpress-deploy-commands-config)
-- [Automated Deployments via Github Actions](#automated-deployments-via-github-actions)
+- [Automated Deployments via GitHub Actions](#automated-deployments-via-github-actions)
 
-  → [Step 1: Copy Workflows & Setup in Github](#step-1-copy-workflows-and-setup-in-github)
+  → [Step 1: Copy Workflows & Setup in GitHub](#step-1-copy-workflows-and-setup-in-github)
 
     - [Option A: SSH Workflow](#option-a) | [Option B: AWS SSM Workflows](#option-b)
 
@@ -93,7 +93,7 @@ To get started, follow these steps:
 
 4. Configure your deployment by adding configuration files. See the [Setup Config Files](#setup-config-files) section for details on configuring your deployment.
 
-5. Utilize Github Actions via Workflows to automate deployments. See the [Automated Deployments via Github Actions](#automated-deployments-via-github-actions) section for details on configuring your deployment.
+5. Utilize GitHub Actions via Workflows to automate deployments. See the [Automated Deployments via GitHub Actions](#automated-deployments-via-github-actions) section for details on configuring your deployment.
 
 [↑ Top](#contents)
 
@@ -330,17 +330,17 @@ Wordpress deployments uses **a releases folder** such that the directory structu
 
 ---
 
-## Automated Deployments via Github Actions
+## Automated Deployments via GitHub Actions
 
 Follow these steps to set up a deployment process via github workflows for your project:
 
-- [Step 1: Copy Workflows & Setup in Github (or AWS)](#step-1-copy-workflows-and-setup-in-github)
+- [Step 1: Copy Workflows & Setup in GitHub (or AWS)](#step-1-copy-workflows-and-setup-in-github)
   - [OPTION A: SSH Workflow](#option-a)
   - [OPTION B: AWS SSM Workflow](#option-b)
 
 - [Step 2: Create a Deploy Script on Server](#step-2-create-a-deploy-script-on-server)
 
-- [Step 3 (Optional): Setup Github Environments for GitHub Deployments](#step-3-optional-setup-github-environments-for-github-deployments)
+- [Step 3 (Optional): Setup GitHub Environments for GitHub Deployments](#step-3-optional-setup-github-environments-for-github-deployments)
 
 Workflows depend on a `deploy.sh` script and `deploy.config.json` file that will being using the `app-release` and `app-deploy` scripts. Be sure to follow that pattern for it to work.
 
@@ -354,7 +354,7 @@ This is the `deploy-commands` file structure convention:
 
 ---
 
-### Step 1: Copy Workflows and Setup in Github
+### Step 1: Copy Workflows and Setup in GitHub
 
 #### OPTION A)
 
@@ -399,9 +399,14 @@ Edit the branches you want to trigger the workflow on. By default, it is set to 
 
 #### OPTION B)
 
-**AWS SSM Workflows: Integrate workflows & Setup IAM, Github Secrets and Github Variables**
+**AWS SSM Workflows: Integrate workflows & Setup IAM, GitHub Secrets and GitHub Variables**
 
-You may not have SSH ports open for security reasons and may be using AWS with SSM - in which case, you can use the `deploy-workflow-aws-ssm-<env:prod|dev>.yml` workflow files instead. Copy them into your site's repository under the `.github/workflows/` directory.
+You may not have SSH ports open for security reasons and may be using AWS with SSM - in which case, you can use the following workflow files instead:
+- `deploy-workflow-aws-ssm-dev.yml`
+- `deploy-workflow-aws-ssm-prod.yml`
+- `deploy-aws-ssm.yml` (this is a shared file that both the above workflows use)
+
+Copy them into your site's repository under the `.github/workflows/` directory.
 
 > [!IMPORTANT]
 > Be sure to review the events that will trigger the workflow. For example, you may want to update the `deploy-workflow-aws-ssm-prod.yml` version to work _either_ `main` branch push OR tag `release` publish as it would be redudant to have both trigger the deployment.
@@ -558,8 +563,9 @@ If your server has only 1 env setting, it will not do any branch/tag related che
 
 ---
 
-### Step 3 (Optional): Setup Github Environments for GitHub Deployments
+### Step 3 (Optional): Setup GitHub Environments for GitHub Deployments
 > [!NOTE]
+> To use GitHub deployments on private repos, you need to have at least a Team plan. See GitHub https://github.com/pricing#compare-features
 > If you don't want to track GitHub deployments, you can remove the `deployments` portions from the workflow files in your repo (they use the `bobheadxi/deployments` action) and skip the rest of this section.
 
 GitHub deployments are a great way to track the status of your deployments and to see which commit is currently deployed to your server.
